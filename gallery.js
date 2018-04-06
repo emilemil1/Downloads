@@ -10,6 +10,8 @@
 - Header with link to YouTube channel, short about section
 - Appearance and polish
 - Favicon
+- Support for more hosting services
+- Optimize network requests
 
 */
 
@@ -154,7 +156,7 @@ function expandDownloads(event) {
         element.mouseleave(unexpandDownloads);
     })
     element.children(".download-box").css("height", element.children(".image-download").css("height"));
-    element.css("grid-template-rows", "0fr 2rem");
+    element.css("grid-template-rows", "0fr 7%");
     element.children(".image-download").css("height", "0px");
     element.children(".image-download").removeClass("hover");
     element.children(".image-bar").css("background-color", "rgb(0,0,0,0.9)");
@@ -164,7 +166,7 @@ function expandDownloads(event) {
 function unexpandDownloads(event) {
     let element = $($.Event(event).currentTarget);
     element.off("mouseleave");
-    element.css("grid-template-rows", "1fr 2rem");
+    element.css("grid-template-rows", "1fr 7%");
     element.children(".image-download").css("height", element.height() - element.children(".image-bar").height());
     element.children(".image-download").addClass("hover");
     element.children(".image-bar").css("background-color", "rgb(0,0,0,0.5)");
