@@ -1,10 +1,23 @@
 /*eslint-env es6, jquery, browser*/
 
+/* TODO
+- Change image on download link hover
+- Song preview
+- Search
+- Filter by song download available
+- Sort by name or date
+- Sharpen preview button
+- Header with link to YouTube channel, short about section
+- Appearance and polish
+- Favicon
+
+*/
+
 let nextData, slideShowGridItems = [], folderElements = [];
 
 function returnNewEmptyGridItem() {
     return $(
-        "<div class='sixteenbynine'>`\
+        "<div class='sixteenbynine'>\
             <div class='gallery-image' thumbnailIndex='0'>\
                 <div class='image-download hover'>\
                 <form method='get' class='button-form'>\
@@ -101,7 +114,6 @@ function getFilenameType(fileData) {
         return parseInt(fileData.name.substring(fileData.name.lastIndexOf(" "), fileData.name.indexOf(".")));
     } else {
         let filename = fileData.name.split(".")[0];
-        let fileEnding = fileData.name.substring(fileData.name.indexOf("."));
         if (filename.endsWith(" (Original)")) {
             return "Original";
         } else if (filename.endsWith(" (Video Edit)")) {
@@ -180,6 +192,15 @@ function prepareFolderMetaData(folderElement) {
             folderElement.children(".image-download").children(".button-form").attr("action", folderElement.images[0]["@content.downloadUrl"] + "/" + getFilename(folderElement.images[0]));
             folderElement.children(".image-download").children(".button-form").children(".download-button").attr("value", "Download Image");
             folderElement.children(".image-download").children(".button-form").children(".download-button").attr("type", "submit");
+            /*
+            if (folderElements.length === 1) {
+                let img = new Image();
+                img.onload = function() {
+                    folderElement.css("background-image", "url(" + img.src + ")");
+                }
+                img.src = folderElement.images[0]["@content.downloadUrl"];
+            }
+            */
         } else {
             let downloadBox = returnNewEmptyDownloadBox();
 
@@ -205,6 +226,16 @@ function prepareFolderMetaData(folderElement) {
                 let form = createImageDownloadButton(folderElement.images[i]);
                 form.appendTo(downloadBox.children(".image-list"));
                 form.children(".download-button").click(unexpandPrevention);
+
+                /*
+                if (folderElements.length === 1) {
+                    let img = new Image();
+                    img.onload = function() {
+                        folderElement.thumbnails[i] = img.src;
+                    }
+                    img.src = folderElement.images[i]["@content.downloadUrl"];
+                }
+                */
             }
 
             folderElement.files.sort(function(e1, e2) {
@@ -249,6 +280,16 @@ function fillGrid(folders, count = folders.length) {
         }
     }
     $(window).resize(function() {
+        if (folderElements.length === 1) {
+            let fitWidth = ($(".main").height()-6)*(16/9);
+            if (fitWidth > parseFloat($(".grid").css("width"))) {
+                fitWidth = $(".grid").width()-6;
+            }
+            folderElements[0].parent().css("width", fitWidth);
+            folderElements[0].parent().css("padding-top", fitWidth/(16/9));
+            let widthDiff = $(".grid").width() - fitWidth;
+            folderElements[0].parent().css("margin-left", widthDiff/2);
+        }
         for (let i = 0; i < folderElements.length; i++) {
             let trans = folderElements[i].children(".image-download").css("transition");
             folderElements[i].children(".image-download").addClass("no-transition");
@@ -257,7 +298,18 @@ function fillGrid(folders, count = folders.length) {
             folderElements[i].children(".image-download").removeClass("no-transition");
             folderElements[i].children(".image-download").css("transition", trans);
         }
+
     });
+    if (folderElements.length === 1) {
+        let fitWidth = ($(".main").height()-6)*(16/9);
+        if (fitWidth > parseFloat(folderElements[0].parent().css("width"))) {
+            fitWidth = $(".grid").width()-6;
+        }
+        folderElements[0].parent().css("width", fitWidth);
+        folderElements[0].parent().css("padding-top", fitWidth/(16/9));
+        let widthDiff = $(".grid").width() - fitWidth;
+        folderElements[0].parent().css("margin-left", widthDiff/2);
+    }
 }
 
 function galleryInit() {
