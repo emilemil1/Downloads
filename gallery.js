@@ -12,6 +12,7 @@
 - Favicon
 - Support for more hosting services
 - Optimize network requests
+- Grid area margins based on viewport so that when viewing a single image, the entire image is in view
 
 */
 

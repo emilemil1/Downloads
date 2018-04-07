@@ -2,54 +2,64 @@ body {
     background-color: #fff;
     display: grid;
     grid-template-areas:
-        "head head"
+        "corn head"
         "side main";
     grid-template-rows: 2.35vw 1fr;
-    grid-template-columns: 15vw 1fr;
+    grid-template-columns: 12.5vw 1fr;
     height: 100vh;
     margin: 0;
 }
 
+.corner {
+    grid-area: corn;
+    z-index: 2;
+    background-color: rgb(44,44,44);
+}
+
 .header {
     grid-area: head;
+    z-index: 1;
     background-color: rgb(44,44,44);
+    box-shadow: 0 0.1vw 0.4vw 0 rgb(0,0,0,0.32);
 }
 
 .sidebar {
     grid-area: side;
+    z-index: 1;
     background-color: rgb(64,64,64);
     display: flex;
     flex-direction: row;
     justify-content: center;
     padding-top: 12.75%;
+
+    box-shadow: 0.1vw 0 0.4vw 0 rgb(0,0,0,0.32);
 }
 
 .search-form {
     display: grid;
-    grid-template-columns: 1fr 15%;
+    grid-template-columns: 1fr 16%;
     content: "Test";
     color: rgb(160,160,160);
     font-size: 5.6%;
     height: 2vw;
-    border-top: 0.05vw;
-    border-top-style: inset;
-    border-top-color: rgb(64,64,64);
-    border-bottom-color: rgb(96,96,96);
-    background-color: rgb(96,96,96);
+    background-color: rgb(0,0,0,0);
     width: 100%;
-    padding-left: 4%;
+    margin-left: 2%;
+    margin-right: 2%;
+
+    box-shadow: 0 0.1vw 0.1vw 0 rgb(0,0,0,0.16), 0 0 0 0.05vw rgb(0,0,0,0.08);
 }
 
 .search-symbol {
-    width: 100%;
+    grid-column: 2;
     cursor: pointer;
     border: none;
     padding: 0px;
-    background-color: rgb(0,0,0,0);
+    background-color: rgb(80,80,80);
     color: rgb(160,160,160);
     font-size: 2.5vw;
     line-height: 0%;
-    padding-bottom: 20%;
+    padding-bottom: 0.16em;
     outline: none;
 }
 
@@ -58,23 +68,30 @@ body {
 }
 
 .search-symbol:active {
-    background-color: rgb(255,255,255,0.2);
+    background-color: rgb(112,112,112);
 }
 
 .search-field {
-    width: 100%;
+    grid-column: 1;
     outline: none;
     font-size: 0.75vw;
-    background-color: rgb(0,0,0,0);
+    background-color: rgb(96,96,96);
     border: none;
     color: rgb(220,220,220);
     padding: 0px;
+    padding-left: 4%;
+    padding-right: 4%;
+    width: calc(100% - 8%);
+}
+
+.search-field::placeholder {
+    color: rgb(220,220,220, 0.6);
 }
 
 .main {
     grid-area: main;
     overflow-y: auto;
-    padding: 1% 2% 1% 2%;
+    padding: 1% 3.5% 1% 3.5%;
 }
 
 .grid {
