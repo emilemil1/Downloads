@@ -3,7 +3,6 @@
 /* TODO
 - Change image on download link hover
 - Song preview
-- Search
 - Filter by song download available
 - Sort by name or date
 - Sharpen preview button
@@ -17,13 +16,13 @@
 
 */
 
-let nextData, slideShowGridItems = [], folderElements = [], itemData = new Map();
+let nextData, slideShowGridItems = [], folderElements = [], gridElements = new Set(), itemData = new Map(), visibleElements = 0;
 
 function returnNewEmptyGridItem() {
     let item = document.createElement('div');
     item.setAttribute("class", "sixteenbynine");
     item.innerHTML =
-        "<div class='gallery-image' thumbnailIndex='0'>\
+        "<div class='gallery-image'>\
             <div class='image-download hover'>\
                 <form method='get' class='button-form'>\
                      <input type='button' class='download-button' value='Please Wait...'>\
@@ -94,6 +93,9 @@ function createFileDownloadButton(fileData) {
 
 function slideShow() {
     for (let i = 0; i < slideShowGridItems.length; i++) {
+        if (!gridElements.has(slideShowGridItems[i])) {
+            continue;
+        }
         slideShowGridItems[i].thumbnailIndex = (slideShowGridItems[i].thumbnailIndex + 1) % (slideShowGridItems[i].thumbnails.length);
         let img = new Image();
         img.onload = function() {
@@ -123,7 +125,7 @@ function createGridItem(folder) {
         slideShowGridItems.push(element);
     }
 
-    return element;
+    folder.gridItem = element;
 }
 
 function getFilenameType(fileData) {
@@ -166,23 +168,32 @@ function getTrackname(filename) {
 
 function expandDownloads(event) {
     let element = $($.Event(event).target.parentNode.parentNode.parentNode);
-        element.children(".image-download").on("transitionend", function() {
-        element.children(".image-download").off("transitionend");
+    let imagedownload = element.children().first();
+    imagedownload.on("transitionend", function() {
+        imagedownload.off("transitionend");
+        imagedownload.css("transition", "height 0s");
         element.mouseleave(unexpandDownloads);
     })
-    element.children(".image-download").css("height", "0px");
-    element.children(".image-download").removeClass("hover");
-    element.children(".image-bar").css("background-color", "rgb(0,0,0,0.9)");
-    element.children(".image-download").children(".button-form").children(".download-button").css("display", "none");
+    imagedownload.css("transition", "height 0.5s");
+    imagedownload.css("height", "0px");
+    imagedownload.removeClass("hover");
+    element.children().eq(1).css("background-color", "rgb(0,0,0,0.9)");
+    imagedownload.children(".button-form").children(".download-button").css("display", "none");
 }
 
 function unexpandDownloads(event) {
     let element = $($.Event(event).currentTarget);
+    let imagedownload = element.children().first();
+    imagedownload.on("transitionend", function() {
+        imagedownload.off("transitionend");
+        imagedownload.css("transition", "height 0s");
+    })
     element.off("mouseleave");
-    element.children(".image-download").css("height", "calc(100% - 1.75vw)");
-    element.children(".image-download").addClass("hover");
-    element.children(".image-bar").css("background-color", "rgb(0,0,0,0.5)");
-    element.children(".image-download").children(".button-form").children(".download-button").css("display", "initial");
+    imagedownload.css("transition", "height 0.5s");
+    imagedownload.css("height", "calc(100% - 1.75vw)");
+    imagedownload.addClass("hover");
+    element.children().eq(1).css("background-color", "rgb(0,0,0,0.5)");
+    imagedownload.children(".button-form").children(".download-button").css("display", "initial");
 }
 
 function prepareFolderMetaData(folderElement) {
@@ -286,23 +297,37 @@ function prepareFoldersMetaData() {
 }
 
 function fillGrid(folders) {
-    let gridElements = [];
+    if (gridElements.size === 1) {
+        console.log("here");
+        gridElements.forEach(function(o) {
+            o.removeAttr("style");
+        })
+    }
+    folderElements = [];
+    gridElements.clear();
+    visibleElements = 50;
     for (let folder of folders) {
         if(folder.name !== "Mix" && folder.folder !== undefined) {
-            let gridItem = createGridItem(folder);
-            gridElements.push(gridItem.parent());
-            folderElements.push(gridItem);
+            if (folder.gridItem === undefined) {
+                createGridItem(folder);
+            }
+            folderElements.push(folder.gridItem);
+            if (gridElements.size < visibleElements) {
+                gridElements.add(folder.gridItem.parent());
+            }
         }
     }
-    $(".grid").append(gridElements);
+    let grid = $(".grid");
+    grid.children().remove();
+    grid.append(Array.from(gridElements));
     if (folderElements.length === 1) {
         let fitWidth = ($(".main").height()-6)*(16/9);
         if (fitWidth > parseFloat(folderElements[0].parent().css("width"))) {
-            fitWidth = $(".grid").width()-6;
+            fitWidth = grid.width()-6;
         }
         folderElements[0].parent().css("width", fitWidth);
         folderElements[0].parent().css("padding-top", fitWidth/(16/9));
-        let widthDiff = $(".grid").width() - fitWidth;
+        let widthDiff = grid.width() - fitWidth;
         folderElements[0].parent().css("margin-left", widthDiff/2);
     }
 }
@@ -323,7 +348,24 @@ function preloadData(link) {
     });
 }
 
+function searchItem(item, string) {
+    if (item.name.toLowerCase().includes(string.toLowerCase())) {
+        return true;
+    }
+
+    return false;
+}
+
 function search(string) {
+    console.log("searching for " + string);
+    results = [];
+    for (item of itemData) {
+        if (searchItem(item[1], string)) {
+            results.push(item[1]);
+        }
+    }
+    visibleElements = 0;
+    fillGrid(results);
 }
 
 function setupHooks() {
@@ -339,6 +381,10 @@ function setupHooks() {
             folderElements[0].parent().css("margin-left", widthDiff/2);
         }
     });
+
+    $(".search-field").on("input", function(event) {
+        search(event.currentTarget.value);
+    })
 }
 
 function galleryInit() {
