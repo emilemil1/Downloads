@@ -13,42 +13,50 @@
 - Support for more hosting services
 - Optimize network requests
 - Grid area margins based on viewport so that when viewing a single image, the entire image is in view
+- filter requests
 
 */
 
-let nextData, slideShowGridItems = [], folderElements = [];
+let nextData, slideShowGridItems = [], folderElements = [], itemData = new Map();
 
 function returnNewEmptyGridItem() {
-    return $(
-        "<div class='sixteenbynine'>\
-            <div class='gallery-image' thumbnailIndex='0'>\
-                <div class='image-download hover'>\
+    let item = document.createElement('div');
+    item.setAttribute("class", "sixteenbynine");
+    item.innerHTML =
+        "<div class='gallery-image' thumbnailIndex='0'>\
+            <div class='image-download hover'>\
                 <form method='get' class='button-form'>\
-                    <input type='button' class='download-button' value='Please Wait...'>\
+                     <input type='button' class='download-button' value='Please Wait...'>\
                 </form>\
-                </div>\
-                <div class='image-bar'>\
-                    <span class='image-tooltip'></span>\
-                    <span class='image-tooltip-extra'></span>\
-                </div>\
             </div>\
-        </div>");
+            <div class='image-bar'>\
+                <span class='image-tooltip'></span>\
+                <span class='image-tooltip-extra'></span>\
+            </div>\
+        </div>";
+    return $(item);
 }
 
 function returnNewEmptyDownloadBox() {
-    return $("<div class='download-box'>\
-                <div class='title'></div>\
-                <div class='images'><b>Images</b></div>\
-                <div class='files'><b>Tracks</b></div>\
-                <div class='image-list'></div>\
-                <div class='file-list'></div>\
-             </div>");
+    let box = document.createElement('div');
+    box.setAttribute("class", "download-box");
+    box.innerHTML =
+            "<div class='title'></div>\
+            <div class='images'><b>Images</b></div>\
+            <div class='files'><b>Tracks</b></div>\
+            <div class='image-list'></div>\
+            <div class='file-list'></div>";
+    return $(box);
 }
 
 function createImageDownloadButton(imageData) {
-    let form = $("<form method='GET' class='button-form'></form>");
-    let button = $("<input type='submit' class='download-button'></input>");
-    button.appendTo(form);
+    let form = document.createElement('form');
+    form.setAttribute("method", "GET");
+    form.setAttribute("class", "button-form");
+
+    let button = document.createElement('input');
+    button.setAttribute("type", "submit");
+    button.setAttribute("class", "download-button");
 
     let url = imageData["@content.downloadUrl"] + "/" + getFilename(imageData);
     let value = "Download Image";
@@ -57,23 +65,31 @@ function createImageDownloadButton(imageData) {
         value += " " + type;
         url = url.substring(0, url.lastIndexOf(".")) + " " + type + url.substring(url.lastIndexOf("."));
     }
-    form.attr("action", url);
-    button.attr("value", value);
+    form.setAttribute("action", url);
+    button.setAttribute("value", value);
 
-    return form;
+    form.appendChild(button);
+
+    return $(form);
 }
 
 function createFileDownloadButton(fileData) {
-    let form = $("<form method='GET' class='button-form'></form>");
-    let button = $("<input type='submit' class='download-button'></input>");
-    button.appendTo(form);
+    let form = document.createElement('form');
+    form.setAttribute("method", "GET");
+    form.setAttribute("class", "button-form");
+
+    let button = document.createElement('input');
+    button.setAttribute("type", "submit");
+    button.setAttribute("class", "download-button");
 
     let url = fileData["@content.downloadUrl"] + "/" + getFilename(fileData);
     let value = "Download " + getFilenameType(fileData);
-    form.attr("action", url);
-    button.attr("value", value);
+    form.setAttribute("action", url);
+    button.setAttribute("value", value);
 
-    return form;
+    form.appendChild(button);
+
+    return $(form);
 }
 
 function slideShow() {
@@ -87,7 +103,7 @@ function slideShow() {
     }
 }
 
-function addGridItem(folder) {
+function createGridItem(folder) {
     let title = folder.name.split("(")[0];
     let thumbnails = [];
     for (let i = 0; i < folder.thumbnails.length; i++) {
@@ -95,8 +111,8 @@ function addGridItem(folder) {
     }
 
     let root = returnNewEmptyGridItem();
-    let element = root.children(".gallery-image");
-    element.children(".image-bar").children(".image-tooltip").prepend(title);
+    let element = root.children();
+    element.children().eq(1).children().first().html(title);
     element.css("background-image", "url("+ thumbnails[0] +")");
     element.thumbnails = thumbnails;
     element.thumbnailIndex = 0;
@@ -106,8 +122,6 @@ function addGridItem(folder) {
     if (thumbnails.length > 1) {
         slideShowGridItems.push(element);
     }
-
-    root.appendTo(".grid");
 
     return element;
 }
@@ -152,12 +166,10 @@ function getTrackname(filename) {
 
 function expandDownloads(event) {
     let element = $($.Event(event).target.parentNode.parentNode.parentNode);
-    element.children(".image-download").on("transitionend", function() {
+        element.children(".image-download").on("transitionend", function() {
         element.children(".image-download").off("transitionend");
         element.mouseleave(unexpandDownloads);
     })
-    element.children(".download-box").css("height", element.children(".image-download").css("height"));
-    element.css("grid-template-rows", "0fr 7%");
     element.children(".image-download").css("height", "0px");
     element.children(".image-download").removeClass("hover");
     element.children(".image-bar").css("background-color", "rgb(0,0,0,0.9)");
@@ -167,8 +179,7 @@ function expandDownloads(event) {
 function unexpandDownloads(event) {
     let element = $($.Event(event).currentTarget);
     element.off("mouseleave");
-    element.css("grid-template-rows", "1fr 7%");
-    element.children(".image-download").css("height", element.height() - element.children(".image-bar").height());
+    element.children(".image-download").css("height", "calc(100% - 1.75vw)");
     element.children(".image-download").addClass("hover");
     element.children(".image-bar").css("background-color", "rgb(0,0,0,0.5)");
     element.children(".image-download").children(".button-form").children(".download-button").css("display", "initial");
@@ -177,9 +188,8 @@ function unexpandDownloads(event) {
 function prepareFolderMetaData(folderElement) {
     folderElement.images = [];
     folderElement.files = [];
-    let folderUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/items/" + folderElement.id + "/children";
+    let folderUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/items/" + folderElement.id + "/children?select=image,@content.downloadUrl,parentReference, name";
     $.get(folderUrl, function(data) {
-        console.log(data);
         for (let i = 0; i < data.value.length; i++) {
             if(data.value[i].image !== undefined) {
                 folderElement.images.push(data.value[i]);
@@ -192,9 +202,9 @@ function prepareFolderMetaData(folderElement) {
 
         if (data.value.length === 1) {
             extra += folderElement.images[0].image.width + "x" + folderElement.images[0].image.height;
-            folderElement.children(".image-download").children(".button-form").attr("action", folderElement.images[0]["@content.downloadUrl"] + "/" + getFilename(folderElement.images[0]));
-            folderElement.children(".image-download").children(".button-form").children(".download-button").attr("value", "Download Image");
-            folderElement.children(".image-download").children(".button-form").children(".download-button").attr("type", "submit");
+            folderElement.children().children().attr("action", folderElement.images[0]["@content.downloadUrl"] + "/" + getFilename(folderElement.images[0]));
+            folderElement.children().children().children().attr("value", "Download Image");
+            folderElement.children().children().children().attr("type", "submit");
             /*
             if (folderElements.length === 1) {
                 let img = new Image();
@@ -211,7 +221,7 @@ function prepareFolderMetaData(folderElement) {
             if (folderElement.images.length > 1) { extra += "s" }
             extra += " / " + folderElement.files.length + " Track";
             if (folderElement.files.length > 1) { extra += "s" }
-            downloadBox.children(".title").html(getTrackname(getFilename(folderElement.files[0])));
+            downloadBox.children().first().html(getTrackname(getFilename(folderElement.files[0])));
             downloadBox.appendTo(folderElement);
 
             function unexpandPrevention(event) {
@@ -227,8 +237,8 @@ function prepareFolderMetaData(folderElement) {
 
             for (let i = 0; i < folderElement.images.length; i++) {
                 let form = createImageDownloadButton(folderElement.images[i]);
-                form.appendTo(downloadBox.children(".image-list"));
-                form.children(".download-button").click(unexpandPrevention);
+                form.appendTo(downloadBox.children().eq(3));
+                form.children().click(unexpandPrevention);
 
                 /*
                 if (folderElements.length === 1) {
@@ -255,14 +265,14 @@ function prepareFolderMetaData(folderElement) {
 
             for (let i = 0; i < folderElement.files.length; i++) {
                 let form = createFileDownloadButton(folderElement.files[i]);
-                form.appendTo(downloadBox.children(".file-list"));
-                form.children(".download-button").click(unexpandPrevention);
+                form.appendTo(downloadBox.children().eq(4));
+                form.children().click(unexpandPrevention);
             }
 
-            folderElement.children(".image-download").children(".button-form").children(".download-button").attr("value", "View Downloads");
-            folderElement.children(".image-download").children(".button-form").children(".download-button").attr("onclick", "expandDownloads(event)");
+            folderElement.children().children().children().attr("value", "View Downloads");
+            folderElement.children().children().children().attr("onclick", "expandDownloads(event)");
         }
-        folderElement.children(".image-bar").children(".image-tooltip-extra").append(extra);
+        folderElement.children().eq(1).children().eq(1).html(extra);
     });
 }
 
@@ -271,38 +281,20 @@ function prepareFoldersMetaData() {
         if (folderElements[i].hasMetadata === false) {
             prepareFolderMetaData(folderElements[i]);
             folderElements[i].hasMetadata = true;
-            folderElements[i].children(".image-download").css("height", folderElements[i].height() - folderElements[i].children(".image-bar").height());
         }
     }
 }
 
-function fillGrid(folders, count = folders.length) {
-    for (let i = 0; i < count; i++) {
-        if(folders[i].name !== "Mix" && folders[i].folder !== undefined) {
-            folderElements.push(addGridItem(folders[i]));
+function fillGrid(folders) {
+    let gridElements = [];
+    for (let folder of folders) {
+        if(folder.name !== "Mix" && folder.folder !== undefined) {
+            let gridItem = createGridItem(folder);
+            gridElements.push(gridItem.parent());
+            folderElements.push(gridItem);
         }
     }
-    $(window).resize(function() {
-        if (folderElements.length === 1) {
-            let fitWidth = ($(".main").height()-6)*(16/9);
-            if (fitWidth > parseFloat($(".grid").css("width"))) {
-                fitWidth = $(".grid").width()-6;
-            }
-            folderElements[0].parent().css("width", fitWidth);
-            folderElements[0].parent().css("padding-top", fitWidth/(16/9));
-            let widthDiff = $(".grid").width() - fitWidth;
-            folderElements[0].parent().css("margin-left", widthDiff/2);
-        }
-        for (let i = 0; i < folderElements.length; i++) {
-            let trans = folderElements[i].children(".image-download").css("transition");
-            folderElements[i].children(".image-download").addClass("no-transition");
-            folderElements[i].children(".image-download").css("height", folderElements[i].height() - folderElements[i].children(".image-bar").height());
-            folderElements[i].children(".image-download")[0].offsetHeight;
-            folderElements[i].children(".image-download").removeClass("no-transition");
-            folderElements[i].children(".image-download").css("transition", trans);
-        }
-
-    });
+    $(".grid").append(gridElements);
     if (folderElements.length === 1) {
         let fitWidth = ($(".main").height()-6)*(16/9);
         if (fitWidth > parseFloat(folderElements[0].parent().css("width"))) {
@@ -315,14 +307,51 @@ function fillGrid(folders, count = folders.length) {
     }
 }
 
+function storeData(data) {
+    for (let folder of data) {
+        if (!itemData.has(folder.id)) {
+            itemData.set(folder.id, folder);
+        }
+    }
+}
+
+function preloadData(link) {
+    link = String(link).replace("top=50","top=2000");
+    $.get(link, function(data) {
+        storeData(data.value);
+        console.log("preloaded");
+    });
+}
+
+function search(string) {
+}
+
+function setupHooks() {
+    $(window).resize(function() {
+        if (folderElements.length === 1) {
+            let fitWidth = ($(".main").height()-6)*(16/9);
+            if (fitWidth > parseFloat($(".grid").css("width"))) {
+                fitWidth = $(".grid").width()-6;
+            }
+            folderElements[0].parent().css("width", fitWidth);
+            folderElements[0].parent().css("padding-top", fitWidth/(16/9));
+            let widthDiff = $(".grid").width() - fitWidth;
+            folderElements[0].parent().css("margin-left", widthDiff/2);
+        }
+    });
+}
+
 function galleryInit() {
-    let galleryUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root/children?orderby=createdDateTime desc&expand=thumbnails&top=50";
+    let galleryUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root/children?select=folder,id,name,thumbnails&orderby=createdDateTime desc&expand=thumbnails&top=50";
     $.get(galleryUrl, function(data) {
         console.log(data);
         $(".loading").remove();
         nextData = data['@odata.nextLink'];
-        fillGrid(data.value, 8);
+        storeData(data.value);
+        fillGrid(itemData.values());
         prepareFoldersMetaData();
+        setupHooks();
+        preloadData(nextData);
     });
 
     setInterval(slideShow, 7000);
