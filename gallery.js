@@ -16,7 +16,7 @@
 
 */
 
-let nextData, slideShowGridItems = [], folderElements = [], gridElements = new Set(), itemData = new Map(), visibleElements = 0;
+let nextData = undefined, slideShowGridItems = [], folderElements = [], gridElements = new Set(), itemData = new Map(), visibleElements = 0, afterPreload = function(){}, urlParams, waitForPreload = false;
 
 function returnNewEmptyGridItem() {
     let item = document.createElement('div');
@@ -114,7 +114,7 @@ function createGridItem(folder) {
 
     let root = returnNewEmptyGridItem();
     let element = root.children();
-    element.children().eq(1).children().first().html(title);
+    element.children().eq(1).children().first().text(title);
     element.css("background-image", "url("+ thumbnails[0] +")");
     element.thumbnails = thumbnails;
     element.thumbnailIndex = 0;
@@ -209,7 +209,7 @@ function prepareFolderMetaData(folderElement) {
             }
         }
 
-        let extra = "&nbsp;- ";
+        let extra = "- ";
 
         if (data.value.length === 1) {
             extra += folderElement.images[0].image.width + "x" + folderElement.images[0].image.height;
@@ -232,7 +232,7 @@ function prepareFolderMetaData(folderElement) {
             if (folderElement.images.length > 1) { extra += "s" }
             extra += " / " + folderElement.files.length + " Track";
             if (folderElement.files.length > 1) { extra += "s" }
-            downloadBox.children().first().html(getTrackname(getFilename(folderElement.files[0])));
+            downloadBox.children().first().text(getTrackname(getFilename(folderElement.files[0])));
             downloadBox.appendTo(folderElement);
 
             function unexpandPrevention(event) {
@@ -283,7 +283,7 @@ function prepareFolderMetaData(folderElement) {
             folderElement.children().children().children().attr("value", "View Downloads");
             folderElement.children().children().children().attr("onclick", "expandDownloads(event)");
         }
-        folderElement.children().eq(1).children().eq(1).html(extra);
+        folderElement.children().eq(1).children().eq(1).text(extra);
     });
 }
 
@@ -344,7 +344,18 @@ function preloadData(link) {
     link = String(link).replace("top=50","top=2000");
     $.get(link, function(data) {
         storeData(data.value);
-        console.log("preloaded");
+        nextData = null;
+        afterPreload();
+        let searchfield = $(".search-field");
+        if (waitForPreload) {
+            waitForPreload = false;
+            $(".loading").remove();
+            $(".grid").css("visibility", "visible");
+            if (!$.isEmptyObject(getUrlParams("search"))) {
+                searchfield.val(getUrlParams("search"));
+            }
+        }
+        searchfield.attr("placeholder", "Search");
     });
 }
 
@@ -357,9 +368,14 @@ function searchItem(item, string) {
 }
 
 function search(string) {
-    console.log("searching for " + string);
-    results = [];
-    for (item of itemData) {
+    if (nextData != null) {
+        afterPreload = function() {
+            search(string);
+        }
+        return;
+    }
+    let results = [];
+    for (let item of itemData) {
         if (searchItem(item[1], string)) {
             results.push(item[1]);
         }
@@ -387,13 +403,43 @@ function setupHooks() {
     })
 }
 
+function handleUrlArguments() {
+    if (!$.isEmptyObject(getUrlParams("search"))) {
+        search(getUrlParams("search"));
+        waitForPreload = true;
+    }
+}
+
+function getUrlParams(prop) {
+    if (urlParams !== undefined) {
+        return (prop && prop in urlParams) ? urlParams[prop]: urlParams;
+    }
+    urlParams = {};
+    let search = decodeURIComponent(window.location.href.slice(window.location.href.indexOf("?")+1));
+    if (search === decodeURIComponent(window.location.href)) {
+        return (prop && prop in urlParams) ? urlParams[prop]: urlParams;
+    }
+    let definitions = search.split("&");
+
+    definitions.forEach(function(val) {
+        let parts = val.split('=', 2);
+        urlParams[parts[0]] = parts[1];
+    });
+
+    return (prop && prop in urlParams) ? urlParams[prop]: urlParams;
+}
+
 function galleryInit() {
     let galleryUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root/children?select=folder,id,name,thumbnails&orderby=createdDateTime desc&expand=thumbnails&top=50";
     $.get(galleryUrl, function(data) {
         console.log(data);
-        $(".loading").remove();
         nextData = data['@odata.nextLink'];
         storeData(data.value);
+        handleUrlArguments();
+        if (!waitForPreload) {
+            $(".loading").remove();
+            $(".grid").css("visibility", "visible");
+        }
         fillGrid(itemData.values());
         prepareFoldersMetaData();
         setupHooks();

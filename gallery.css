@@ -95,6 +95,7 @@ body {
 }
 
 .grid {
+    visibility: hidden;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
     grid-template-rows: repeat(auto-fit, minmax(5.625rem, 1fr));
@@ -234,6 +235,9 @@ body {
 .image-tooltip-extra {
     visibility: hidden;
     font-size: 0.9vw;
+}
+.image-tooltip-extra:before {
+    content: "\00a0"
 }
 
 .file-download:hover ~ .image-download {
