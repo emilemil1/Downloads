@@ -351,8 +351,9 @@ function preloadData(link) {
             waitForPreload = false;
             $(".loading").remove();
             $(".grid").css("visibility", "visible");
-            if (!$.isEmptyObject(getUrlParams("search"))) {
-                searchfield.val(getUrlParams("search"));
+            let s = getUrlParams("s");
+            if (!$.isEmptyObject(getUrlParams(s))) {
+                searchfield.val(getUrlParams(s));
             }
         }
         searchfield.attr("placeholder", "Search");
@@ -404,8 +405,9 @@ function setupHooks() {
 }
 
 function handleUrlArguments() {
-    if (!$.isEmptyObject(getUrlParams("search"))) {
-        search(getUrlParams("search"));
+    let s = getUrlParams("s");
+    if (!$.isEmptyObject(s)) {
+        search(s);
         waitForPreload = true;
     }
 }
