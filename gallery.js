@@ -4,15 +4,12 @@
 - Change image on download link hover
 - Song preview
 - Filter by song download available
-- Sort by name or date
 - Sharpen preview button
 - Header with link to YouTube channel, short about section
 - Appearance and polish
 - Favicon
 - Support for more hosting services
-- Optimize network requests
-- Grid area margins based on viewport so that when viewing a single image, the entire image is in view
-- filter requests
+- Optimize network requests (batch);
 
 */
 
@@ -377,7 +374,7 @@ function preloadData(link) {
         if (waitForPreload) {
             waitForPreload = false;
             $(".loading").remove();
-            $(".grid").css("visibility", "visible");
+            $(".grid").fadeIn(1000);
             let s = getUrlParams("s");
             if (!$.isEmptyObject(s)) {
                 searchfield.val(s);
@@ -529,8 +526,12 @@ function getUrlParams(prop) {
 }
 
 function galleryInit() {
+    $(".grid").hide();
     setupHooks();
     handleUrlArguments();
+    if (!waitForPreload) {
+        $(".loading").remove();
+    }
     let galleryUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root/children?select=folder,id,name,thumbnails,createdDateTime&";
     if (sortBy === "name") {
         galleryUrl += "orderby=name ";
@@ -546,14 +547,13 @@ function galleryInit() {
     $.get(galleryUrl, function(data) {
         console.log(data);
         nextData = data['@odata.nextLink'];
+        preloadData(nextData);
         storeData(data.value);
         if (!waitForPreload) {
-            $(".loading").remove();
-            $(".grid").css("visibility", "visible");
+            $(".grid").fadeIn(1000);
         }
         fillGrid(itemData.values());
         prepareFoldersMetaData();
-        preloadData(nextData);
     });
 
     setInterval(slideShow, 7000);

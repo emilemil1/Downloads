@@ -97,7 +97,7 @@ body {
 }
 
 .custom-checkbox-indicator {
-    color: rgb(220,220,220, 0.6);
+    color: rgb(220,220,220, 0.7);
     background-color: rgb(80,80,80);
     height: 1.5vw;
     grid-area: a;
@@ -119,12 +119,20 @@ body {
 .sort .sidebar-panel .custom-checkbox input:checked ~ .custom-checkbox-indicator {
     color: rgb(220,220,220, 1);
 }
+
+.custom-checkbox input:checked {
+    cursor: default;
+}
+
 .custom-checkbox input:not(:checked) ~ .custom-checkbox-indicator  {
     box-shadow: 0 0.1vw 0.1vw 0 rgb(0,0,0,0.16), 0 0 0 0.05vw rgb(0,0,0,0.08);
     background-color: rgb(108,108,108);
     z-index: 1;
 }
 
+.custom-checkbox input:not(:checked):hover ~ .custom-checkbox-indicator {
+    background-color: rgb(120,120,120);
+}
 
 .sorting {
     display: grid;
@@ -137,6 +145,7 @@ body {
 
 .order, .sort {
     padding: 0.2vw;
+    padding-top: 0.4vw;
     background-color: rgb(100,100,100);
     box-shadow: 0 0.1vw 0.1vw 0 rgb(0,0,0,0.16), 0 0 0 0.05vw rgb(0,0,0,0.08);
 }
@@ -152,11 +161,12 @@ body {
 }
 
 .order .sorting-text, .sort .sorting-text {
-    color: rgb(220,220,220, 0.6);
+    color: rgb(220,220,220, 0.7);
     grid-column: 1 / 2;
     margin: 0;
-    margin-bottom: 0.3vw;
+    margin-bottom: 0.5vw;
     text-align: center;
+    user-select: none;
 }
 
 .order .sidebar-panel, .sort .sidebar-panel {
@@ -247,7 +257,6 @@ body {
 }
 
 .grid {
-    visibility: hidden;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
     grid-template-rows: repeat(auto-fit, minmax(5.625rem, 1fr));
