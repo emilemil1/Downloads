@@ -16,7 +16,7 @@
 
 */
 
-let nextData = undefined, slideShowGridItems = [], folderElements = [], gridElements = new Set(), itemData = new Map(), visibleElements = 0, afterPreload = function(){}, urlParams, waitForPreload = false;
+let nextData = undefined, slideShowGridItems = [], folderElements = [], gridElements = new Set(), itemData = new Map(), visibleElements = 0, afterPreload = function(){}, urlParams, waitForPreload = false, sortBy = "date", orderBy = "ascending";
 
 function returnNewEmptyGridItem() {
     let item = document.createElement('div');
@@ -96,12 +96,12 @@ function slideShow() {
         if (!gridElements.has(slideShowGridItems[i])) {
             continue;
         }
-        slideShowGridItems[i].thumbnailIndex = (slideShowGridItems[i].thumbnailIndex + 1) % (slideShowGridItems[i].thumbnails.length);
+        slideShowGridItems[i].prop("thumbnailindex", (slideShowGridItems[i].prop("thumbnailindex") + 1) % (slideShowGridItems[i].prop("thumbnails").length));
         let img = new Image();
         img.onload = function() {
             slideShowGridItems[i].css("background-image", "url(" + img.src + ")");
         }
-        img.src = slideShowGridItems[i].thumbnails[slideShowGridItems[i].thumbnailIndex];
+        img.src = slideShowGridItems[i].prop("thumbnails")[slideShowGridItems[i].prop("thumbnailindex")];
     }
 }
 
@@ -113,13 +113,14 @@ function createGridItem(folder) {
     }
 
     let root = returnNewEmptyGridItem();
-    let element = root.children();
+    let element = root.children().first();
     element.children().eq(1).children().first().text(title);
     element.css("background-image", "url("+ thumbnails[0] +")");
-    element.thumbnails = thumbnails;
-    element.thumbnailIndex = 0;
-    element.id = folder.id;
-    element.hasMetadata = false;
+    element.prop("thumbnails", thumbnails);
+    element.prop("thumbnailindex", 0)
+    element.prop("id", folder.id);
+    element.prop("hasMetadata", false);
+    element.prop("data", folder);
 
     if (thumbnails.length > 1) {
         slideShowGridItems.push(element);
@@ -174,6 +175,7 @@ function expandDownloads(event) {
         imagedownload.css("transition", "height 0s");
         element.mouseleave(unexpandDownloads);
     })
+    console.log(imagedownload);
     imagedownload.css("transition", "height 0.5s");
     imagedownload.css("height", "0px");
     imagedownload.removeClass("hover");
@@ -199,7 +201,7 @@ function unexpandDownloads(event) {
 function prepareFolderMetaData(folderElement) {
     folderElement.images = [];
     folderElement.files = [];
-    let folderUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/items/" + folderElement.id + "/children?select=image,@content.downloadUrl,parentReference, name";
+    let folderUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/items/" + folderElement.prop("id") + "/children?select=image,@content.downloadUrl,parentReference,name";
     $.get(folderUrl, function(data) {
         for (let i = 0; i < data.value.length; i++) {
             if(data.value[i].image !== undefined) {
@@ -280,8 +282,8 @@ function prepareFolderMetaData(folderElement) {
                 form.children().click(unexpandPrevention);
             }
 
-            folderElement.children().children().children().attr("value", "View Downloads");
-            folderElement.children().children().children().attr("onclick", "expandDownloads(event)");
+            folderElement.children().first().children().first().children().first().attr("value", "View Downloads");
+            folderElement.children().first().children().first().children().first().attr("onclick", "expandDownloads(event)");
         }
         folderElement.children().eq(1).children().eq(1).text(extra);
     });
@@ -289,16 +291,35 @@ function prepareFolderMetaData(folderElement) {
 
 function prepareFoldersMetaData() {
     for (let i = 0; i < folderElements.length; i++) {
-        if (folderElements[i].hasMetadata === false) {
+        if (folderElements[i].prop("hasMetadata") === false) {
             prepareFolderMetaData(folderElements[i]);
-            folderElements[i].hasMetadata = true;
+            folderElements[i].prop("hasMetadata", true);
         }
     }
 }
 
+function sort(folders) {
+    folders.sort(function(a, b) {
+        aData = a.children().prop("data");
+        bData = b.children().prop("data");
+        let result;
+
+        if (sortBy === "name") {
+            result = aData.name < bData.name;
+        } else if (sortBy === "date") {
+            result = Date.parse(aData.createdDateTime) < Date.parse(bData.createdDateTime);
+        }
+
+        if (orderBy === "descending") {
+            result = !result;
+        }
+
+        return result;
+    })
+}
+
 function fillGrid(folders) {
     if (gridElements.size === 1) {
-        console.log("here");
         gridElements.forEach(function(o) {
             o.removeAttr("style");
         })
@@ -319,7 +340,9 @@ function fillGrid(folders) {
     }
     let grid = $(".grid");
     grid.children().remove();
-    grid.append(Array.from(gridElements));
+    let arr = Array.from(gridElements);
+    sort(arr)
+    grid.append(arr);
     if (folderElements.length === 1) {
         let fitWidth = ($(".main").height()-6)*(16/9);
         if (fitWidth > parseFloat(folderElements[0].parent().css("width"))) {
@@ -344,19 +367,24 @@ function preloadData(link) {
     link = String(link).replace("top=50","top=2000");
     $.get(link, function(data) {
         storeData(data.value);
-        nextData = null;
-        afterPreload();
         let searchfield = $(".search-field");
+        $(".search-symbol").css("opacity", 100);
+        $(".loader").css("opacity", 0);
+        $(".sidebar-cover").on("transitionend", function() {
+            $(".sidebar-cover").css("visibility", "hidden");
+        })
+        $(".sidebar-cover").css("opacity", 0);
         if (waitForPreload) {
             waitForPreload = false;
             $(".loading").remove();
             $(".grid").css("visibility", "visible");
             let s = getUrlParams("s");
-            if (!$.isEmptyObject(getUrlParams(s))) {
-                searchfield.val(getUrlParams(s));
+            if (!$.isEmptyObject(s)) {
+                searchfield.val(s);
             }
         }
-        searchfield.attr("placeholder", "Search");
+        nextData = null;
+        afterPreload();
     });
 }
 
@@ -399,13 +427,74 @@ function setupHooks() {
         }
     });
 
-    $(".search-field").on("input", function(event) {
-        search(event.currentTarget.value);
+    let searchField = $(".search-field");
+    let orderNameCheckbox = $(".order-name-checkbox");
+    let orderDateCheckbox = $(".order-date-checkbox");
+    let sortAscCheckbox = $(".sort-asc-checkbox");
+    let sortDescCheckbox = $(".sort-desc-checkbox");
+
+    searchField.on("input", function(event) {
+        search(searchField.val());
+    })
+
+    orderNameCheckbox.change(function() {
+        orderNameCheckbox.attr("disabled", true);
+        orderDateCheckbox.removeAttr("disabled");
+        orderDateCheckbox.prop("checked", false);
+        sortBy = "name";
+        if(orderBy === "descending") {
+            search(searchField.val());
+        } else {
+            sortDescCheckbox.click();
+        }
+    })
+
+    orderDateCheckbox.change(function() {
+        orderDateCheckbox.attr("disabled", true);
+        orderNameCheckbox.removeAttr("disabled");
+        orderNameCheckbox.prop("checked", false);
+        sortBy = "date";
+        if(orderBy === "ascending") {
+            search(searchField.val());
+        } else {
+            sortAscCheckbox.click();
+        }
+    })
+
+    sortAscCheckbox.change(function() {
+        sortAscCheckbox.attr("disabled", true);
+        sortDescCheckbox.removeAttr("disabled");
+        sortDescCheckbox.prop("checked", false);
+        orderBy = "ascending";
+        search(searchField.val());
+    })
+
+    sortDescCheckbox.change(function() {
+        sortDescCheckbox.attr("disabled", true);
+        sortAscCheckbox.removeAttr("disabled");
+        sortAscCheckbox.prop("checked", false);
+        orderBy = "descending";
+        search(searchField.val());
     })
 }
 
 function handleUrlArguments() {
     let s = getUrlParams("s");
+    let sb = getUrlParams("sb");
+    let o = getUrlParams("o");
+
+    if (!$.isEmptyObject(sb)) {
+        if (sb === "name") {$(".order-name-checkbox").click()}
+        else if (sb === "date") {$(".order-date-checkbox").click()}
+    } else {
+        $(".order-date-checkbox").click();
+    }
+    if (!$.isEmptyObject(o)) {
+        if (o === "asc") {$(".sort-asc-checkbox").click()}
+        else if (o === "desc") {$(".sort-desc-checkbox").click()}
+    } else {
+        $(".sort-asc-checkbox").click();
+    }
     if (!$.isEmptyObject(s)) {
         search(s);
         waitForPreload = true;
@@ -414,7 +503,11 @@ function handleUrlArguments() {
 
 function getUrlParams(prop) {
     if (urlParams !== undefined) {
-        return (prop && prop in urlParams) ? urlParams[prop]: urlParams;
+        if (prop !== undefined) {
+            return (prop && prop in urlParams) ? urlParams[prop]: {};
+        } else {
+            return urlParams;
+        }
     }
     urlParams = {};
     let search = decodeURIComponent(window.location.href.slice(window.location.href.indexOf("?")+1));
@@ -428,27 +521,41 @@ function getUrlParams(prop) {
         urlParams[parts[0]] = parts[1];
     });
 
-    return (prop && prop in urlParams) ? urlParams[prop]: urlParams;
+    if (prop !== undefined) {
+        return (prop && prop in urlParams) ? urlParams[prop]: {};
+    } else {
+        return urlParams;
+    }
 }
 
 function galleryInit() {
-    let galleryUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root/children?select=folder,id,name,thumbnails&orderby=createdDateTime desc&expand=thumbnails&top=50";
+    setupHooks();
+    handleUrlArguments();
+    let galleryUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root/children?select=folder,id,name,thumbnails,createdDateTime&";
+    if (sortBy === "name") {
+        galleryUrl += "orderby=name ";
+    } else if (sortBy === "date") {
+        galleryUrl += "orderby=createdDateTime ";
+    }
+    if (orderBy === "descending") {
+        galleryUrl += "asc";
+    } else if (orderBy === "ascending") {
+        galleryUrl += "desc";
+    }
+    galleryUrl += "&expand=thumbnails&top=50";
     $.get(galleryUrl, function(data) {
         console.log(data);
         nextData = data['@odata.nextLink'];
         storeData(data.value);
-        handleUrlArguments();
         if (!waitForPreload) {
             $(".loading").remove();
             $(".grid").css("visibility", "visible");
         }
         fillGrid(itemData.values());
         prepareFoldersMetaData();
-        setupHooks();
         preloadData(nextData);
     });
 
     setInterval(slideShow, 7000);
 }
-
-$(document).ready(galleryInit());
+document.addEventListener("DOMContentLoaded", galleryInit);

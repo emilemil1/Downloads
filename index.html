@@ -8,11 +8,46 @@
     <script type="text/javascript" src="https://js.live.net/v7.2/OneDrive.js"></script>
 </head>
 <body>
-    <h1 class="loading">Loading...</h1>
+    <h1 class="loading">Loading Content...</h1>
     <div class="corner"></div>
     <div class="header"></div>
+    <div class=sidebar-cover>
+        <div class="loader"></div>
+    </div>
     <div class="sidebar">
-        <form class="search-form"><input class="search-field" placeholder="Loading..."><input type="button" value="&#8981" class="search-symbol"></form>
+        <form class="search-form">
+            <input class="search-field" placeholder="Search">
+            <div class="search-aside">
+                <input type="button" value="&#8981" class="search-symbol">
+                <div class="loader"></div>
+            </div>
+        </form>
+        <div class="sorting">
+            <div class="order"><div class="sorting-text">Sort by</div>
+                <div class="sidebar-panel">
+                    <div class="order-name custom-checkbox">
+                        <input type="checkbox" class="order-name-checkbox">
+                        <div class="custom-checkbox-indicator">Name</div>
+                    </div>
+                    <div class="order-date custom-checkbox">
+                        <input type="checkbox" class="order-date-checkbox">
+                        <div class="custom-checkbox-indicator">Date</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sort"><div class="sorting-text">Order</div>
+                <div class="sidebar-panel">
+                    <div class="sort-desc custom-checkbox">
+                        <input type="checkbox" class="sort-desc-checkbox">
+                        <div class="custom-checkbox-indicator">&#8595;</div>
+                    </div>
+                    <div class="sort-asc custom-checkbox">
+                        <input type="checkbox" class="sort-asc-checkbox">
+                        <div class="custom-checkbox-indicator">&#8593;</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="main">
         <div class="grid"></div>
