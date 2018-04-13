@@ -93,12 +93,13 @@ function slideShow() {
         if (!gridElements.has(slideShowGridItems[i])) {
             continue;
         }
-        slideShowGridItems[i].prop("thumbnailindex", (slideShowGridItems[i].prop("thumbnailindex") + 1) % (slideShowGridItems[i].prop("thumbnails").length));
+        let element = slideShowGridItems[i].children().first();
+        element.prop("thumbnailindex", (element.prop("thumbnailindex") + 1) % (element.prop("thumbnails").length));
         let img = new Image();
         img.onload = function() {
-            slideShowGridItems[i].css("background-image", "url(" + img.src + ")");
+            element.css("background-image", "url(" + img.src + ")");
         }
-        img.src = slideShowGridItems[i].prop("thumbnails")[slideShowGridItems[i].prop("thumbnailindex")];
+        img.src = element.prop("thumbnails")[element.prop("thumbnailindex")];
     }
 }
 
@@ -112,6 +113,12 @@ function createGridItem(folder) {
     let root = returnNewEmptyGridItem();
     let element = root.children().first();
     element.children().eq(1).children().first().text(title);
+    let img = new Image();
+    img.onload = function() {
+        element.css("background-image", "url("+ img.src +")");
+        folder.root.css("opacity", "100");
+    }
+    img.src = thumbnails[0];
     element.css("background-image", "url("+ thumbnails[0] +")");
     element.prop("thumbnails", thumbnails);
     element.prop("thumbnailindex", 0)
@@ -119,11 +126,12 @@ function createGridItem(folder) {
     element.prop("hasMetadata", false);
     element.prop("data", folder);
 
-    if (thumbnails.length > 1) {
-        slideShowGridItems.push(element);
-    }
-
     folder.gridItem = element;
+    folder.root = folder.gridItem.parent();
+
+    if (thumbnails.length > 1) {
+        slideShowGridItems.push(folder.root);
+    }
 }
 
 function getFilenameType(fileData) {
@@ -317,10 +325,13 @@ function sort(folders) {
 
 function fillGrid(folders) {
     if (gridElements.size === 1) {
-        gridElements.forEach(function(o) {
-            o.removeAttr("style");
+        gridElements.forEach(function(e) {
+            e.get(0).style.width = null;
+            e.get(0).style.paddingTop = null;
+            e.get(0).style.marginLeft = null;
         })
     }
+
     folderElements = [];
     gridElements.clear();
     visibleElements = 50;
@@ -331,7 +342,7 @@ function fillGrid(folders) {
             }
             folderElements.push(folder.gridItem);
             if (gridElements.size < visibleElements) {
-                gridElements.add(folder.gridItem.parent());
+                gridElements.add(folder.root);
             }
         }
     }
@@ -340,7 +351,7 @@ function fillGrid(folders) {
     let arr = Array.from(gridElements);
     sort(arr)
     grid.append(arr);
-    if (folderElements.length === 1) {
+    if (gridElements.size === 1) {
         let fitWidth = ($(".main").height()-6)*(16/9);
         if (fitWidth > parseFloat(folderElements[0].parent().css("width"))) {
             fitWidth = grid.width()-6;
@@ -384,7 +395,6 @@ function finishPreload() {
         if (waitForPreload) {
             waitForPreload = false;
             $(".loading").remove();
-            $(".grid").fadeIn(1000);
             let s = getUrlParams("s");
             if (!$.isEmptyObject(s)) {
                 searchfield.val(s);
@@ -542,7 +552,6 @@ function getUrlParams(prop) {
 }
 
 function galleryInit() {
-    $(".grid").hide();
     setupHooks();
     handleUrlArguments();
     if (!waitForPreload) {
@@ -566,13 +575,11 @@ function galleryInit() {
         nextData = data['@odata.nextLink'];
         storeData(data.value);
         if (!waitForPreload || nextData == undefined) {
-            $(".grid").fadeIn(1000);
             finishPreload();
         }
         search("");
         prepareFoldersMetaData();
     });
-
     setInterval(slideShow, 7000);
 }
 document.addEventListener("DOMContentLoaded", galleryInit);
