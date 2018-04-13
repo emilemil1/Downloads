@@ -97,7 +97,7 @@ body {
 }
 
 .custom-checkbox-indicator {
-    color: rgb(220,220,220, 0.7);
+    color: rgb(220,220,220, 0.9);
     background-color: rgb(80,80,80);
     height: 1.5vw;
     grid-area: a;
@@ -113,11 +113,7 @@ body {
 }
 
 .custom-checkbox input:checked ~ .custom-checkbox-indicator  {
-    color: rgb(220,220,220, 0.95);
-}
-
-.sort .sidebar-panel .custom-checkbox input:checked ~ .custom-checkbox-indicator {
-    color: rgb(220,220,220, 1);
+    color: rgb(220,220,220);
 }
 
 .custom-checkbox input:checked {
@@ -161,7 +157,7 @@ body {
 }
 
 .order .sorting-text, .sort .sorting-text {
-    color: rgb(220,220,220, 0.7);
+    color: rgb(220,220,220, 0.9);
     grid-column: 1 / 2;
     margin: 0;
     margin-bottom: 0.5vw;

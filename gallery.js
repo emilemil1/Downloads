@@ -3,7 +3,7 @@
 /* TODO
 - Change image on download link hover
 - Song preview
-- Filter by song download available
+- Filter by song download available (UI needed)
 - Sharpen preview button
 - Header with link to YouTube channel, short about section
 - Appearance and polish
@@ -13,7 +13,7 @@
 
 */
 
-let nextData = undefined, slideShowGridItems = [], folderElements = [], gridElements = new Set(), itemData = new Map(), visibleElements = 0, afterPreload = function(){}, urlParams, waitForPreload = false, sortBy = "date", orderBy = "ascending";
+let nextData = undefined, slideShowGridItems = [], folderElements = [], gridElements = new Set(), itemData = new Map(), visibleElements = 0, afterPreload = function(){}, urlParams, waitForPreload = false, sortBy = "date", orderBy = "ascending", filterSong = false;
 
 function returnNewEmptyGridItem() {
     let item = document.createElement('div');
@@ -325,7 +325,7 @@ function fillGrid(folders) {
     gridElements.clear();
     visibleElements = 50;
     for (let folder of folders) {
-        if(folder.name !== "Mix" && folder.folder !== undefined) {
+        if(folder.name !== "Mix") {
             if (folder.gridItem === undefined) {
                 createGridItem(folder);
             }
@@ -361,16 +361,26 @@ function storeData(data) {
 }
 
 function preloadData(link) {
-    link = String(link).replace("top=50","top=2000");
     $.get(link, function(data) {
         storeData(data.value);
+        finishPreload();
+    });
+}
+
+function finishPreload() {
+        if (nextData === null) {
+            return;
+        }
         let searchfield = $(".search-field");
+        let sidebarcover = $(".sidebar-cover");
         $(".search-symbol").css("opacity", 100);
         $(".loader").css("opacity", 0);
-        $(".sidebar-cover").on("transitionend", function() {
-            $(".sidebar-cover").css("visibility", "hidden");
+        sidebarcover.on("transitionend", function() {
+            sidebarcover.css("visibility", "hidden");
         })
-        $(".sidebar-cover").css("opacity", 0);
+
+        sidebarcover.css("opacity", 0);
+        sidebarcover.css("pointer-events", "none");
         if (waitForPreload) {
             waitForPreload = false;
             $(".loading").remove();
@@ -382,19 +392,21 @@ function preloadData(link) {
         }
         nextData = null;
         afterPreload();
-    });
 }
 
 function searchItem(item, string) {
-    if (item.name.toLowerCase().includes(string.toLowerCase())) {
-        return true;
+    if (!item.name.toLowerCase().includes(string.toLowerCase())) {
+        return false;
+    }
+    if (filterSong === true && item.thumbnails.length >= item.folder.childCount) {
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 function search(string) {
-    if (nextData != null) {
+    if (nextData !== null && search !== "") {
         afterPreload = function() {
             search(string);
         }
@@ -430,7 +442,7 @@ function setupHooks() {
     let sortAscCheckbox = $(".sort-asc-checkbox");
     let sortDescCheckbox = $(".sort-desc-checkbox");
 
-    searchField.on("input", function(event) {
+    searchField.on("input", function() {
         search(searchField.val());
     })
 
@@ -479,7 +491,11 @@ function handleUrlArguments() {
     let s = getUrlParams("s");
     let sb = getUrlParams("sb");
     let o = getUrlParams("o");
+    let f = getUrlParams("f");
 
+    if (!$.isEmptyObject(f)) {
+        if (f === "song") {filterSong = true}
+    }
     if (!$.isEmptyObject(sb)) {
         if (sb === "name") {$(".order-name-checkbox").click()}
         else if (sb === "date") {$(".order-date-checkbox").click()}
@@ -532,7 +548,7 @@ function galleryInit() {
     if (!waitForPreload) {
         $(".loading").remove();
     }
-    let galleryUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root/children?select=folder,id,name,thumbnails,createdDateTime&";
+    let galleryUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root/children?select=folder,id,name,thumbnails,createdDateTime&filter=folder ne null and name ne 'Mix'&";
     if (sortBy === "name") {
         galleryUrl += "orderby=name ";
     } else if (sortBy === "date") {
@@ -544,15 +560,16 @@ function galleryInit() {
         galleryUrl += "desc";
     }
     galleryUrl += "&expand=thumbnails&top=50";
+    preloadData(galleryUrl.replace("top=50","top=2000"));
     $.get(galleryUrl, function(data) {
         console.log(data);
         nextData = data['@odata.nextLink'];
-        preloadData(nextData);
         storeData(data.value);
-        if (!waitForPreload) {
+        if (!waitForPreload || nextData == undefined) {
             $(".grid").fadeIn(1000);
+            finishPreload();
         }
-        fillGrid(itemData.values());
+        search("");
         prepareFoldersMetaData();
     });
 
