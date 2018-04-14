@@ -3,13 +3,12 @@
 /* TODO
 - Change image on download link hover
 - Song preview
-- Filter by song download available (UI needed)
 - Sharpen preview button
 - Header with link to YouTube channel, short about section
 - Appearance and polish
 - Favicon
 - Support for more hosting services
-- Optimize network requests (batch);
+- Request metadata on file viewing
 
 */
 
@@ -112,7 +111,18 @@ function createGridItem(folder) {
 
     let root = returnNewEmptyGridItem();
     let element = root.children().first();
+    let imageCount = thumbnails.length;
+    let fileCount = folder.folder.childCount - thumbnails.length;
+    let extra = "- ";
     element.children().eq(1).children().first().text(title);
+    extra += imageCount + " Image";
+    if (imageCount > 1) { extra += "s" }
+    if (fileCount !== 0) {
+        extra += " / " + fileCount + " Track";
+        if (fileCount > 1) { extra += "s" }
+    }
+    element.children().eq(1).children().eq(1).text(extra);
+
     let img = new Image();
     img.onload = function() {
         element.css("background-image", "url("+ img.src +")");
@@ -216,10 +226,7 @@ function prepareFolderMetaData(folderElement) {
             }
         }
 
-        let extra = "- ";
-
         if (data.value.length === 1) {
-            extra += folderElement.images[0].image.width + "x" + folderElement.images[0].image.height;
             folderElement.children().children().attr("action", folderElement.images[0]["@content.downloadUrl"] + "/" + getFilename(folderElement.images[0]));
             folderElement.children().children().children().attr("value", "Download Image");
             folderElement.children().children().children().attr("type", "submit");
@@ -235,10 +242,6 @@ function prepareFolderMetaData(folderElement) {
         } else {
             let downloadBox = returnNewEmptyDownloadBox();
 
-            extra += folderElement.images.length + " Image";
-            if (folderElement.images.length > 1) { extra += "s" }
-            extra += " / " + folderElement.files.length + " Track";
-            if (folderElement.files.length > 1) { extra += "s" }
             downloadBox.children().first().text(getTrackname(getFilename(folderElement.files[0])));
             downloadBox.appendTo(folderElement);
 
@@ -290,7 +293,6 @@ function prepareFolderMetaData(folderElement) {
             folderElement.children().first().children().first().children().first().attr("value", "View Downloads");
             folderElement.children().first().children().first().children().first().attr("onclick", "expandDownloads(event)");
         }
-        folderElement.children().eq(1).children().eq(1).text(extra);
     });
 }
 
@@ -301,8 +303,8 @@ function prepareFoldersMetaData() {
             folderElements[i].prop("hasMetadata", true);
         }
     }
-}
 
+}
 function sort(folders) {
     folders.sort(function(a, b) {
         aData = a.children().prop("data");
@@ -415,6 +417,31 @@ function searchItem(item, string) {
     return true;
 }
 
+function setUrl(string) {
+    let baseurl = window.location.href;
+    let url = baseurl.substring(0,baseurl.indexOf("index.html")+10);
+    let modstring = "";
+    if (string !== "") {
+        modstring += "s=" + string + "&";
+    }
+    if (sortBy !== "date") {
+        modstring += "sb=" + sortBy + "&";
+    }
+    if (orderBy !== "ascending") {
+        modstring += "o=" + "desc" + "&";
+    }
+    if (filterSong !== false) {
+        modstring += "f=" + "song" + "&";
+    }
+    if (modstring !== "") {
+        modstring = "?" + modstring.substring(0,modstring.length-1)
+        url += modstring;
+    }
+    if (url != baseurl) {
+        window.history.pushState("", "", url);
+    }
+}
+
 function search(string) {
     if (nextData !== null && search !== "") {
         afterPreload = function() {
@@ -423,6 +450,7 @@ function search(string) {
         return;
     }
     let results = [];
+    setUrl(string);
     for (let item of itemData) {
         if (searchItem(item[1], string)) {
             results.push(item[1]);
@@ -451,6 +479,7 @@ function setupHooks() {
     let orderDateCheckbox = $(".order-date-checkbox");
     let sortAscCheckbox = $(".sort-asc-checkbox");
     let sortDescCheckbox = $(".sort-desc-checkbox");
+    let filterSongDownload = $(".filter-song-download-checkbox");
 
     searchField.on("input", function() {
         search(searchField.val());
@@ -495,6 +524,13 @@ function setupHooks() {
         orderBy = "descending";
         search(searchField.val());
     })
+
+    filterSongDownload.change(function() {
+        filterSong = !filterSong;
+        search(searchField.val());
+    })
+
+
 }
 
 function handleUrlArguments() {
