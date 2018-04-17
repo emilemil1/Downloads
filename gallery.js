@@ -17,17 +17,21 @@
 
 */
 
-let nextData = undefined, slideShowGridItems = [], folderElements = [], gridElements = new Set(), itemData = new Map(), visibleElements = 0, afterPreload = function(){}, urlParams, waitForPreload = false, sortBy = "date", orderBy = "ascending", filterSong = false;
+let nextData = undefined, slideShowGridItems = [], folderElements = [], gridElements = new Set(), itemData = new Map(), visibleElements = 0, urlParams, waitForPreload = false, sortBy = "date", orderBy = "ascending", filterSong = false, searchEnabled = false;
 
 function returnNewEmptyGridItem() {
     let item = document.createElement('div');
-    item.setAttribute("class", "sixteenbynine");
+    item.setAttribute("class", "grid-item");
     item.innerHTML =
-        "<div class='image-bar'>\
-            <span class='image-menubutton'><div></div><div></div><div></div></span>\
-            <span class='image-title'></span>\
+        "<div class='image-ui-container'>\
+            <div class='image-bar'>\
+                <span class='image-menubutton'><div></div><div></div><div></div></span>\
+                <span class='image-title'></span>\
+            </div>\
+            <div class='image-frame'></div>\
         </div>\
-        <div class='gallery-image'>\
+        <div class='sixteenbynine'>\
+            <div class='gallery-image'></div>\
         </div>";
     return $(item);
 }
@@ -92,7 +96,7 @@ function slideShow() {
         if (!gridElements.has(slideShowGridItems[i])) {
             continue;
         }
-        let element = slideShowGridItems[i].children().eq(1);
+        let element = slideShowGridItems[i].children().eq(1).children().first();
         element.prop("thumbnailindex", (element.prop("thumbnailindex") + 1) % (element.prop("thumbnails").length));
         let img = new Image();
         img.onload = function() {
@@ -110,11 +114,11 @@ function createGridItem(folder) {
     }
 
     let root = returnNewEmptyGridItem();
-    let element = root.children().eq(1);
+    let element = root.children().eq(1).children().first();
     let imageCount = thumbnails.length;
     let fileCount = folder.folder.childCount - thumbnails.length;
     let extra = "- ";
-    root.children().first().children().eq(1).text(title);
+    root.children().first().children().first().children().eq(1).text(title);
     /*
     extra += imageCount + " Image";
     if (imageCount > 1) { extra += "s" }
@@ -139,7 +143,7 @@ function createGridItem(folder) {
     element.prop("data", folder);
 
     folder.gridItem = element;
-    folder.root = folder.gridItem.parent();
+    folder.root = folder.gridItem.parent().parent();
 
     if (thumbnails.length > 1) {
         slideShowGridItems.push(folder.root);
@@ -309,8 +313,8 @@ function prepareFoldersMetaData() {
 }
 function sort(folders) {
     folders.sort(function(a, b) {
-        aData = a.children().eq(1).prop("data");
-        bData = b.children().eq(1).prop("data");
+        aData = a.children().eq(1).children().first().prop("data");
+        bData = b.children().eq(1).children().first().prop("data");
         let result;
 
         if (sortBy === "name") {
@@ -360,10 +364,10 @@ function fillGrid(folders) {
         if (fitWidth > parseFloat(folderElements[0].parent().css("width"))) {
             fitWidth = grid.width()-6;
         }
-        folderElements[0].parent().css("width", fitWidth);
-        folderElements[0].parent().css("padding-top", fitWidth/(16/9));
+        console.log(folderElements[0].parent().parent());
+        folderElements[0].parent().parent().css("width", fitWidth);
         let widthDiff = grid.width() - fitWidth;
-        folderElements[0].parent().css("margin-left", widthDiff/2);
+        folderElements[0].parent().parent().css("margin-left", widthDiff/2);
     }
 }
 
@@ -382,30 +386,32 @@ function preloadData(link) {
     });
 }
 
-function finishPreload() {
-        if (nextData === null) {
-            return;
-        }
-        let searchfield = $(".search-field");
-        let sidebarcover = $(".sidebar-cover");
-        $(".search-symbol").css("opacity", 100);
-        sidebarcover.on("transitionend", function() {
-            sidebarcover.css("visibility", "hidden");
-        })
+var finishPreload = (function() {
+    var executed = false;
+    return function() {
+        if (!executed) {
+            executed = true;
+            let searchfield = $(".search-field");
+            let sidebarcover = $(".sidebar-cover");
+            $(".search-symbol").css("opacity", 100);
+            sidebarcover.on("transitionend", function() {
+                sidebarcover.css("visibility", "hidden");
+            })
 
-        sidebarcover.css("opacity", 0);
-        sidebarcover.css("pointer-events", "none");
-        if (waitForPreload) {
-            waitForPreload = false;
-            $(".loading").remove();
-            let s = getUrlParams("s");
-            if (!$.isEmptyObject(s)) {
-                searchfield.val(s);
+            sidebarcover.css("opacity", 0);
+            sidebarcover.css("pointer-events", "none");
+            if (waitForPreload) {
+                waitForPreload = false;
+                $(".loading").remove();
+                let s = getUrlParams("s");
+                if (!$.isEmptyObject(s)) {
+                    searchfield.val(s);
+                }
             }
+            search(searchfield.val());
         }
-        nextData = null;
-        afterPreload();
-}
+    };
+})();
 
 function searchItem(item, string) {
     if (!item.name.toLowerCase().includes(string.toLowerCase())) {
@@ -444,12 +450,7 @@ function setUrl(string) {
 }
 
 function search(string) {
-    if (nextData !== null && search !== "") {
-        afterPreload = function() {
-            search(string);
-        }
-        return;
-    }
+    if (!searchEnabled) {return}
     let results = [];
     setUrl(string);
     for (let item of itemData) {
@@ -468,10 +469,9 @@ function setupHooks() {
             if (fitWidth > parseFloat($(".grid").css("width"))) {
                 fitWidth = $(".grid").width()-6;
             }
-            folderElements[0].parent().css("width", fitWidth);
-            folderElements[0].parent().css("padding-top", fitWidth/(16/9));
+            folderElements[0].parent().parent().css("width", fitWidth);
             let widthDiff = $(".grid").width() - fitWidth;
-            folderElements[0].parent().css("margin-left", widthDiff/2);
+            folderElements[0].parent().parent().css("margin-left", widthDiff/2);
         }
     });
 
@@ -608,15 +608,15 @@ function galleryInit() {
         galleryUrl += "desc";
     }
     galleryUrl += "&expand=thumbnails&top=50";
+    searchEnabled = true;
     preloadData(galleryUrl.replace("top=50","top=2000"));
     $.get(galleryUrl, function(data) {
         console.log(data);
         nextData = data['@odata.nextLink'];
         storeData(data.value);
-        if (!waitForPreload || nextData == undefined) {
+        if (!waitForPreload || nextData === undefined) {
             finishPreload();
         }
-        search("");
         //prepareFoldersMetaData();
     });
     setInterval(slideShow, 7000);
