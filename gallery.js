@@ -14,10 +14,11 @@
 - Fix image bar gap when zooming
 - Add shadow to image bar
 - Differentiate image bar from background.
+- Optimize
 
 */
 
-let nextData = undefined, slideShowGridItems = [], folderElements = [], gridElements = new Set(), itemData = new Map(), visibleElements = 0, urlParams, waitForPreload = false, sortBy = "date", orderBy = "ascending", filterSong = false, searchEnabled = false;
+let nextData = undefined, slideShowGridItems = [], folderElements = [], gridElements = new Set(), itemData = new Map(), visibleElements = 0, urlParams, waitForPreload = false, sortBy = "date", orderBy = "ascending", filterSong = false, searchEnabled = false, colorThief = new ColorThief();
 
 function returnNewEmptyGridItem() {
     let item = document.createElement('div');
@@ -130,8 +131,16 @@ function createGridItem(folder) {
     */
 
     let img = new Image();
+    img.setAttribute('crossOrigin', '');
     img.onload = function() {
         element.css("background-image", "url("+ img.src +")");
+        let color = colorThief.getColor(img);
+        let colorMod = ((color[0] + color[1] + color[2])/3)/32;
+        color[0] = Math.round(color[0]/colorMod);
+        color[1] = Math.round(color[1]/colorMod);
+        color[2] = Math.round(color[2]/colorMod);
+        folder.root.children().first().children().first().css("background-color", "rgb("+color[0]+","+color[1]+","+color[2]+")");
+        folder.root.children().first().children().eq(1).css("background-color", "rgb("+color[0]+","+color[1]+","+color[2]+")");
         folder.root.css("opacity", "100");
     }
     img.src = thumbnails[0];
