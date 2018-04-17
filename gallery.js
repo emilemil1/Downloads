@@ -9,6 +9,11 @@
 - Favicon
 - Support for more hosting services
 - Request metadata on file viewing
+- Mobile UI
+- Convert all px to rem
+- Fix image bar gap when zooming
+- Add shadow to image bar
+- Differentiate image bar from background.
 
 */
 
@@ -18,16 +23,11 @@ function returnNewEmptyGridItem() {
     let item = document.createElement('div');
     item.setAttribute("class", "sixteenbynine");
     item.innerHTML =
-        "<div class='gallery-image'>\
-            <div class='image-download hover'>\
-                <form method='get' class='button-form'>\
-                     <input type='button' class='download-button' value='Please Wait...'>\
-                </form>\
-            </div>\
-            <div class='image-bar'>\
-                <span class='image-tooltip'></span>\
-                <span class='image-tooltip-extra'></span>\
-            </div>\
+        "<div class='image-bar'>\
+            <span class='image-menubutton'><div></div><div></div><div></div></span>\
+            <span class='image-title'></span>\
+        </div>\
+        <div class='gallery-image'>\
         </div>";
     return $(item);
 }
@@ -92,7 +92,7 @@ function slideShow() {
         if (!gridElements.has(slideShowGridItems[i])) {
             continue;
         }
-        let element = slideShowGridItems[i].children().first();
+        let element = slideShowGridItems[i].children().eq(1);
         element.prop("thumbnailindex", (element.prop("thumbnailindex") + 1) % (element.prop("thumbnails").length));
         let img = new Image();
         img.onload = function() {
@@ -110,11 +110,12 @@ function createGridItem(folder) {
     }
 
     let root = returnNewEmptyGridItem();
-    let element = root.children().first();
+    let element = root.children().eq(1);
     let imageCount = thumbnails.length;
     let fileCount = folder.folder.childCount - thumbnails.length;
     let extra = "- ";
-    element.children().eq(1).children().first().text(title);
+    root.children().first().children().eq(1).text(title);
+    /*
     extra += imageCount + " Image";
     if (imageCount > 1) { extra += "s" }
     if (fileCount !== 0) {
@@ -122,6 +123,7 @@ function createGridItem(folder) {
         if (fileCount > 1) { extra += "s" }
     }
     element.children().eq(1).children().eq(1).text(extra);
+    */
 
     let img = new Image();
     img.onload = function() {
@@ -307,8 +309,8 @@ function prepareFoldersMetaData() {
 }
 function sort(folders) {
     folders.sort(function(a, b) {
-        aData = a.children().prop("data");
-        bData = b.children().prop("data");
+        aData = a.children().eq(1).prop("data");
+        bData = b.children().eq(1).prop("data");
         let result;
 
         if (sortBy === "name") {
@@ -387,7 +389,6 @@ function finishPreload() {
         let searchfield = $(".search-field");
         let sidebarcover = $(".sidebar-cover");
         $(".search-symbol").css("opacity", 100);
-        $(".loader").css("opacity", 0);
         sidebarcover.on("transitionend", function() {
             sidebarcover.css("visibility", "hidden");
         })
@@ -540,7 +541,9 @@ function handleUrlArguments() {
     let f = getUrlParams("f");
 
     if (!$.isEmptyObject(f)) {
-        if (f === "song") {filterSong = true}
+        if (f === "song") {
+            $(".filter-song-download-checkbox").click();
+        }
     }
     if (!$.isEmptyObject(sb)) {
         if (sb === "name") {$(".order-name-checkbox").click()}
@@ -614,7 +617,7 @@ function galleryInit() {
             finishPreload();
         }
         search("");
-        prepareFoldersMetaData();
+        //prepareFoldersMetaData();
     });
     setInterval(slideShow, 7000);
 }
