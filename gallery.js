@@ -11,9 +11,6 @@
 - Request metadata on file viewing
 - Mobile UI
 - Convert all px to rem
-- Fix image bar gap when zooming
-- Add shadow to image bar
-- Differentiate image bar from background.
 - Optimize
 
 */
@@ -32,7 +29,6 @@ function returnNewEmptyGridItem() {
             <div class='image-frame'></div>\
         </div>\
         <div class='sixteenbynine'>\
-            <div class='gallery-image'></div>\
         </div>";
     return $(item);
 }
@@ -94,32 +90,37 @@ function createFileDownloadButton(fileData) {
 
 function slideShow() {
     for (let i = 0; i < slideShowGridItems.length; i++) {
-        if (!gridElements.has(slideShowGridItems[i])) {
+        let folder = slideShowGridItems[i];
+        if (!gridElements.has(folder.gridItem)) {
             continue;
         }
-        let element = slideShowGridItems[i].children().eq(1).children().first();
-        element.prop("thumbnailindex", (element.prop("thumbnailindex") + 1) % (element.prop("thumbnails").length));
-        let img = new Image();
-        img.onload = function() {
-            element.css("background-image", "url(" + img.src + ")");
-        }
-        img.src = element.prop("thumbnails")[element.prop("thumbnailindex")];
+        let index = folder.thumbnailIndex;
+        let thumbnails = slideShowGridItems[i].thumbnails;
+        let e1 = folder.gridItem.children().eq(1).children().eq(index);
+        index = folder.thumbnailIndex = ((index + 1) % thumbnails.length);
+        let e2 = folder.gridItem.children().eq(1).children().eq(index);
+        folder.gridItem.children().first().children().first().css("background-color", folder.darkColor[index]);
+        folder.gridItem.children().first().children().eq(1).css("background-color", folder.darkColor[index]);
+        e1.css("opacity", 0);
+        e2.css("opacity", 1);
     }
 }
 
 function createGridItem(folder) {
     let title = folder.name.split("(")[0];
     let thumbnails = [];
+    let smallThumbnails = [];
     for (let i = 0; i < folder.thumbnails.length; i++) {
         thumbnails.unshift(folder.thumbnails[i].large.url);
+        smallThumbnails.unshift(folder.thumbnails[i].small.url);
     }
 
-    let root = returnNewEmptyGridItem();
-    let element = root.children().eq(1).children().first();
+    let gridItem = returnNewEmptyGridItem();
     let imageCount = thumbnails.length;
     let fileCount = folder.folder.childCount - thumbnails.length;
     let extra = "- ";
-    root.children().first().children().first().children().eq(1).text(title);
+    gridItem.children().first().children().first().children().eq(1).text(title);
+
     /*
     extra += imageCount + " Image";
     if (imageCount > 1) { extra += "s" }
@@ -130,32 +131,63 @@ function createGridItem(folder) {
     element.children().eq(1).children().eq(1).text(extra);
     */
 
+    folder.thumbnails = thumbnails;
+    folder.thumbnailIndex = 0;
+    folder.hasMetadata = false;
+    folder.gridItem = gridItem;
+    gridItem.prop("data", folder);
+
+    let thumbElements = [];
+    for (let thumb of thumbnails) {
+        let img = $(
+            "<img class='gallery-image' " +
+            "alt='" + title + "' " +
+            "crossOrigin='Anonymous' " +
+            "src='" + thumb + "' " +
+            ">");
+        if (thumbElements.length !== 0) {
+            img.css("opacity", 0);
+        }
+        thumbElements.push(img);
+    }
+    gridItem.children().eq(1).append(thumbElements);
+
+    folder.darkColor = [];
+    folder.brightColor = [];
+
     let img = new Image();
-    img.setAttribute('crossOrigin', '');
     img.onload = function() {
-        element.css("background-image", "url("+ img.src +")");
         let color = colorThief.getColor(img);
+        folder.brightColor[0] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
         let colorMod = ((color[0] + color[1] + color[2])/3)/32;
         color[0] = Math.round(color[0]/colorMod);
         color[1] = Math.round(color[1]/colorMod);
         color[2] = Math.round(color[2]/colorMod);
-        folder.root.children().first().children().first().css("background-color", "rgb("+color[0]+","+color[1]+","+color[2]+")");
-        folder.root.children().first().children().eq(1).css("background-color", "rgb("+color[0]+","+color[1]+","+color[2]+")");
-        folder.root.css("opacity", "100");
+        folder.darkColor[0] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
+        folder.gridItem.children().first().children().first().css("background-color", folder.darkColor);
+        folder.gridItem.children().first().children().eq(1).css("background-color", folder.darkColor);
+        folder.gridItem.css("opacity", "100");
     }
+    img.crossOrigin = "Anonymous";
     img.src = thumbnails[0];
-    element.css("background-image", "url("+ thumbnails[0] +")");
-    element.prop("thumbnails", thumbnails);
-    element.prop("thumbnailindex", 0)
-    element.prop("id", folder.id);
-    element.prop("hasMetadata", false);
-    element.prop("data", folder);
-
-    folder.gridItem = element;
-    folder.root = folder.gridItem.parent().parent();
 
     if (thumbnails.length > 1) {
-        slideShowGridItems.push(folder.root);
+        slideShowGridItems.push(folder);
+
+        for (let i=1; i<smallThumbnails.length; i++) {
+            let img = new Image();
+            img.onload = function() {
+                let color = colorThief.getColor(img);
+                folder.brightColor[i] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
+                let colorMod = ((color[0] + color[1] + color[2])/3)/32;
+                color[0] = Math.round(color[0]/colorMod);
+                color[1] = Math.round(color[1]/colorMod);
+                color[2] = Math.round(color[2]/colorMod);
+                folder.darkColor[i] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
+            }
+            img.crossOrigin = "Anonymous";
+            img.src = smallThumbnails[i];
+        }
     }
 }
 
@@ -322,8 +354,8 @@ function prepareFoldersMetaData() {
 }
 function sort(folders) {
     folders.sort(function(a, b) {
-        aData = a.children().eq(1).children().first().prop("data");
-        bData = b.children().eq(1).children().first().prop("data");
+        aData = a.prop("data");
+        bData = b.prop("data");
         let result;
 
         if (sortBy === "name") {
@@ -344,7 +376,6 @@ function fillGrid(folders) {
     if (gridElements.size === 1) {
         gridElements.forEach(function(e) {
             e.get(0).style.width = null;
-            e.get(0).style.paddingTop = null;
             e.get(0).style.marginLeft = null;
         })
     }
@@ -354,12 +385,9 @@ function fillGrid(folders) {
     visibleElements = 50;
     for (let folder of folders) {
         if(folder.name !== "Mix") {
-            if (folder.gridItem === undefined) {
-                createGridItem(folder);
-            }
-            folderElements.push(folder.gridItem);
+            folderElements.push(folder);
             if (gridElements.size < visibleElements) {
-                gridElements.add(folder.root);
+                gridElements.add(folder.gridItem);
             }
         }
     }
@@ -369,20 +397,20 @@ function fillGrid(folders) {
     sort(arr)
     grid.append(arr);
     if (gridElements.size === 1) {
-        let fitWidth = ($(".main").height()-6)*(16/9);
-        if (fitWidth > parseFloat(folderElements[0].parent().css("width"))) {
-            fitWidth = grid.width()-6;
+        let fitWidth = ($(".main").height())*(16/9);
+        if (fitWidth > parseFloat(folderElements[0].gridItem.children().eq(1).css("width"))) {
+            fitWidth = grid.width();
         }
-        console.log(folderElements[0].parent().parent());
-        folderElements[0].parent().parent().css("width", fitWidth);
+        folderElements[0].gridItem.css("width", fitWidth);
         let widthDiff = grid.width() - fitWidth;
-        folderElements[0].parent().parent().css("margin-left", widthDiff/2);
+        folderElements[0].gridItem.css("margin-left", widthDiff/2);
     }
 }
 
 function storeData(data) {
     for (let folder of data) {
         if (!itemData.has(folder.id)) {
+            createGridItem(folder);
             itemData.set(folder.id, folder);
         }
     }
@@ -474,13 +502,15 @@ function search(string) {
 function setupHooks() {
     $(window).resize(function() {
         if (folderElements.length === 1) {
-            let fitWidth = ($(".main").height()-6)*(16/9);
-            if (fitWidth > parseFloat($(".grid").css("width"))) {
-                fitWidth = $(".grid").width()-6;
+            folderElements[0].gridItem.get(0).style.width = null;
+            folderElements[0].gridItem.get(0).style.marginLeft = null;
+            let fitWidth = ($(".main").height())*(16/9);
+            if (fitWidth > parseFloat(folderElements[0].gridItem.children().eq(1).css("width"))) {
+                fitWidth = $(".grid").width();
             }
-            folderElements[0].parent().parent().css("width", fitWidth);
+            folderElements[0].gridItem.css("width", fitWidth);
             let widthDiff = $(".grid").width() - fitWidth;
-            folderElements[0].parent().parent().css("margin-left", widthDiff/2);
+            folderElements[0].gridItem.css("margin-left", widthDiff/2);
         }
     });
 
