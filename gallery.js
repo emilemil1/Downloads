@@ -12,10 +12,11 @@
 - Mobile UI
 - Convert all px to rem
 - Optimize
+- Test colorify, vibrant, rgbaster, imgcolr, chameleon
 
 */
 
-let nextData = undefined, slideShowGridItems = [], folderElements = [], gridElements = new Set(), itemData = new Map(), visibleElements = 0, urlParams, waitForPreload = false, sortBy = "date", orderBy = "ascending", filterSong = false, searchEnabled = false, colorThief = new ColorThief();
+let nextData = undefined, slideShowGridItems = [], folderElements = [], gridElements = new Set(), itemData = new Map(), visibleElements = 0, urlParams, waitForPreload = false, sortBy = "date", orderBy = "ascending", filterSong = false, searchEnabled = false, colorThief = new ColorThief(), smoothLoad = true;
 
 function returnNewEmptyGridItem() {
     let item = document.createElement('div');
@@ -99,10 +100,32 @@ function slideShow() {
         let e1 = folder.gridItem.children().eq(1).children().eq(index);
         index = folder.thumbnailIndex = ((index + 1) % thumbnails.length);
         let e2 = folder.gridItem.children().eq(1).children().eq(index);
+        let e3 = folder.gridItem.children().eq(1).children().eq((index+1)%thumbnails.length);
+        if (e3 === e1) {
+            e3 = undefined;
+        }
         folder.gridItem.children().first().children().first().css("background-color", folder.darkColor[index]);
         folder.gridItem.children().first().children().eq(1).css("background-color", folder.darkColor[index]);
         e1.css("opacity", 0);
         e2.css("opacity", 1);
+
+        if (e3 === undefined || folder.darkColor[(index+1)%thumbnails.length] !== undefined) {
+            return
+        }
+
+        e3.attr("src", thumbnails[(index+1)%thumbnails.length]);
+        let img = new Image();
+        img.onload = function() {
+            let color = colorThief.getColor(img);
+            folder.brightColor[(index+1)%thumbnails.length] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
+            let colorMod = ((color[0] + color[1] + color[2])/3)/32;
+            color[0] = Math.round(color[0]/colorMod);
+            color[1] = Math.round(color[1]/colorMod);
+            color[2] = Math.round(color[2]/colorMod);
+            folder.darkColor[(index+1)%thumbnails.length] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
+        }
+        img.crossOrigin = "Anonymous";
+        img.src = folder.smallThumbnails[(index+1)%thumbnails.length];
     }
 }
 
@@ -132,18 +155,18 @@ function createGridItem(folder) {
     */
 
     folder.thumbnails = thumbnails;
+    folder.smallThumbnails = smallThumbnails;
     folder.thumbnailIndex = 0;
     folder.hasMetadata = false;
     folder.gridItem = gridItem;
     gridItem.prop("data", folder);
 
     let thumbElements = [];
-    for (let thumb of thumbnails) {
+    for (let i=0; i<thumbnails.length; i++) {
         let img = $(
             "<img class='gallery-image' " +
             "alt='" + title + "' " +
             "crossOrigin='Anonymous' " +
-            "src='" + thumb + "' " +
             ">");
         if (thumbElements.length !== 0) {
             img.css("opacity", 0);
@@ -155,39 +178,8 @@ function createGridItem(folder) {
     folder.darkColor = [];
     folder.brightColor = [];
 
-    let img = new Image();
-    img.onload = function() {
-        let color = colorThief.getColor(img);
-        folder.brightColor[0] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
-        let colorMod = ((color[0] + color[1] + color[2])/3)/32;
-        color[0] = Math.round(color[0]/colorMod);
-        color[1] = Math.round(color[1]/colorMod);
-        color[2] = Math.round(color[2]/colorMod);
-        folder.darkColor[0] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
-        folder.gridItem.children().first().children().first().css("background-color", folder.darkColor);
-        folder.gridItem.children().first().children().eq(1).css("background-color", folder.darkColor);
-        folder.gridItem.css("opacity", "100");
-    }
-    img.crossOrigin = "Anonymous";
-    img.src = thumbnails[0];
-
     if (thumbnails.length > 1) {
         slideShowGridItems.push(folder);
-
-        for (let i=1; i<smallThumbnails.length; i++) {
-            let img = new Image();
-            img.onload = function() {
-                let color = colorThief.getColor(img);
-                folder.brightColor[i] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
-                let colorMod = ((color[0] + color[1] + color[2])/3)/32;
-                color[0] = Math.round(color[0]/colorMod);
-                color[1] = Math.round(color[1]/colorMod);
-                color[2] = Math.round(color[2]/colorMod);
-                folder.darkColor[i] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
-            }
-            img.crossOrigin = "Anonymous";
-            img.src = smallThumbnails[i];
-        }
     }
 }
 
@@ -372,6 +364,57 @@ function sort(folders) {
     })
 }
 
+function imagePrepare(folder) {
+    folder.thumbnailIndex = 0;
+    let smooth = smoothLoad;
+    if (smooth) {
+        folder.gridItem.css("opacity", 0);
+    }
+    let element = folder.gridItem.children().eq(1).children().first();
+    if (element.attr("src") !== undefined) {
+        return;
+    }
+
+    element.attr("src", folder.thumbnails[0]);
+
+    let img = new Image();
+    img.onload = function() {
+        if (smooth) {
+            folder.gridItem.css("opacity", 1);
+        }
+        folder.gridItem.children().eq(1).children().first().css("opacity", 1);
+        let color = colorThief.getColor(img);
+        folder.brightColor[0] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
+        let colorMod = ((color[0] + color[1] + color[2])/3)/32;
+        color[0] = Math.round(color[0]/colorMod);
+        color[1] = Math.round(color[1]/colorMod);
+        color[2] = Math.round(color[2]/colorMod);
+        folder.darkColor[0] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
+        folder.gridItem.children().first().children().first().css("background-color", folder.darkColor);
+        folder.gridItem.children().first().children().eq(1).css("background-color", folder.darkColor);
+    }
+    img.crossOrigin = "Anonymous";
+    img.src = folder.thumbnails[0]
+
+    if (folder.thumbnails.length > 1) {
+        let element = folder.gridItem.children().eq(1).children().eq(1);
+        element.attr("src", folder.thumbnails[1]);
+
+        let img = new Image();
+        img.onload = function() {
+            let color = colorThief.getColor(img);
+            folder.brightColor[1] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
+            let colorMod = ((color[0] + color[1] + color[2])/3)/32;
+            color[0] = Math.round(color[0]/colorMod);
+            color[1] = Math.round(color[1]/colorMod);
+            color[2] = Math.round(color[2]/colorMod);
+            folder.darkColor[1] = "rgb("+color[0]+","+color[1]+","+color[2]+")";
+        }
+        img.crossOrigin = "Anonymous";
+        img.src = folder.smallThumbnails[1];
+    }
+}
+
 function fillGrid(folders) {
     if (gridElements.size === 1) {
         gridElements.forEach(function(e) {
@@ -388,9 +431,11 @@ function fillGrid(folders) {
             folderElements.push(folder);
             if (gridElements.size < visibleElements) {
                 gridElements.add(folder.gridItem);
+                imagePrepare(folder);
             }
         }
     }
+
     let grid = $(".grid");
     grid.children().remove();
     let arr = Array.from(gridElements);
@@ -446,6 +491,7 @@ var finishPreload = (function() {
                 }
             }
             search(searchfield.val());
+            smoothLoad = false;
         }
     };
 })();
