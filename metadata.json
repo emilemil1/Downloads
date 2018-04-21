@@ -1,0 +1,103 @@
+{
+    "folders": [
+        {
+            "name": "Come Dance With Me",
+            "images": [
+                {
+                    "name": "Come Dance With Me 1.jpg",
+                    "artists": [
+                        "Yongpen"
+                    ],
+                    "characters": [
+                        {
+                            "name": "Hatsune Miku",
+                            "media": "Vocaloid"
+                        }
+                    ],
+                    "resolution": {
+                        "width": 1440,
+                        "height": 810
+                    },
+                    "thumbnail": "https://zfthng.am.files.1drv.com/y4mfcoYHFVDPqzYmwG1rq90c3_EnWb5Z-BTpHLjNoPhgZXW49iC2mNB3m4wce-ObReGNfBp_6_raJIdfbmAaXFiHZ1DX0CeaGfovtA0OlM8AgoNXqUiNnPZAIL1VVwQf_HmLS84P0wvtVTKQt07d3vSF3RCXK7FVGsjZayiWG2VlRY",
+                    "dominantColor": {
+                        "r": 64,
+                        "g": 88,
+                        "b": 86
+                    }
+                },
+                {
+                    "name": "Come Dance With Me 2.jpg",
+                    "artists": [
+                        "HaiHai"
+                    ],
+                    "characters": [
+                        {
+                            "name": "Hatsune Miku",
+                            "media": "Vocaloid"
+                        },
+                        {
+                            "name": "Rin",
+                            "media": "Vocaloid"
+                        }
+                    ],
+                    "resolution": {
+                        "width": 1920,
+                        "height": 1080
+                    },
+                    "dominantColor": {
+                        "r": 24,
+                        "g": 45,
+                        "b": 53
+                    }
+                }
+            ],
+            "files": [
+                {
+                    "name": "Test - Come Dance With Me (Radio Edit) (Nightcore).mp3",
+                    "duration": 170.39673469387756
+                },
+                {
+                    "name": "Test - Come Dance With Me (Radio Edit) (Original).mp3",
+                    "duration": 170.39673469387756
+                },
+                {
+                    "name": "Test - Come Dance With Me (Radio Edit) (Video Edit).mp3",
+                    "duration": 170.39673469387756
+                }
+            ],
+            "ytlink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty",
+            "lyrics": "Unknown",
+            "songName": "Test - Come Dance With Me (Radio Edit)"
+        },
+        {
+            "name": "Never Cry Again",
+            "images": [
+                {
+                    "name": "Never Cry Again.jpg",
+                    "artists": [
+                        "Unknown"
+                    ],
+                    "characters": [
+                        {
+                            "name": "Unknown",
+                            "media": "Unknown"
+                        }
+                    ],
+                    "resolution": {
+                        "width": 1920,
+                        "height": 1080
+                    },
+                    "thumbnail": "https://zftcng.am.files.1drv.com/y4mDMSE0kDXp3S0buSnu2Syfv2Lfc3eRk-RHM2Mg_Vo53gP-Zo70Tfnxtb_JzQNx2l4SDM2aaSPpwkIkFGIUqdKFb5mDqurvP9098pcG96T0IkydQB2_ZQ5ALYdMn25q38Qm_wjxmJMvnlDqFGAivhn1Rj9obK6nksUituTXaz_NS0",
+                    "dominantColor": {
+                        "r": 24,
+                        "g": 45,
+                        "b": 53
+                    }
+                }
+            ],
+            "files": [],
+            "ytlink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty",
+            "lyrics": "None"
+        }
+    ]
+}
