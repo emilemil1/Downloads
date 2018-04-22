@@ -115,7 +115,12 @@ function searchItem(item, string) {
 
 function setUrl(string) {
     let baseurl = window.location.href;
-    let url = baseurl.substring(0,baseurl.indexOf("index.html")+10);
+    let url = baseurl;
+    if (baseurl.includes("index.html")) {
+        url = baseurl.substring(0,baseurl.indexOf("index.html")+10);
+    } else {
+        url = baseurl.substring(0,baseurl.lastIndexOf("/")+1);
+    }
     let modstring = "";
     if (string !== "") {
         modstring += "s=" + string + "&";
