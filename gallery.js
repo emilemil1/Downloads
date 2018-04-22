@@ -306,6 +306,7 @@ function handleUrlArguments() {
 }
 
 async function galleryInit() {
+    searchEnabled = false;
     setupHooks();
     handleUrlArguments();
     setInterval(slideShow, 7000);
@@ -317,7 +318,6 @@ async function galleryInit() {
     } else {
         search("");
     }
-    searchEnabled = false;
 }
 document.addEventListener("DOMContentLoaded", galleryInit);
 
