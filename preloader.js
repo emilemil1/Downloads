@@ -33,7 +33,7 @@ function createGridItem(folder) {
         let img = document.createElement('img');
         img.setAttribute("class", "gallery-image");
         img.setAttribute("alt", folder.title);
-        img.setAttribute("src", folder.images[i].thumbnail);
+        img.setAttribute("src", folder.images[i].thumbnailLarge);
         if (thumbElements.childElementCount === 0) {
             img.style.opacity = 1;
         }

@@ -11,12 +11,11 @@
 - Request metadata on file viewing
 - Mobile UI
 - Convert all px to rem
-- Optimize
+- dynamic thumbnail resolution
 */
 
 let itemData = window.itemData; //All folders.
 let gridFolders = []; //Folders that match the current search.
-let gridElements = new Set(); //Folders that are currently visible.
 let slideShowGridItems = window.slideShowGridItems; //Folders that contain multiple images.
 
 let urlParams; // Containing the url search/sort parameters.
@@ -25,6 +24,16 @@ let orderBy = "ascending" //sorting order
 let filterSong = false; //only display folders with a song download
 
 let searchEnabled = false; //Enables and disables search.
+
+function isEmpty(obj) {
+    for (let key in obj) {
+        if(obj.hasOwnProperty(key)) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 function slideShow() {
     for (let i = 0; i < slideShowGridItems.length; i++) {
@@ -70,34 +79,40 @@ function sort(folders) {
 }
 
 function fillGrid(folders) {
-    if (gridElements.length === 1) {
-        for (let e of gridElements) {
-            e.style.width = null;
-            e.style.marginLeft = null;
+    if (gridFolders.length === 1) {
+        for (let f of gridFolders) {
+            f.gridItem.style.width = null;
+            f.gridItem.style.marginLeft = null;
         }
     }
 
     gridFolders = [];
-    gridElements = [];
+    let gridElements = []
     for (let folder of folders) {
         gridFolders.push(folder);
         gridElements.push(folder.gridItem);
     }
 
-    let grid = $(".grid");
-    grid.children().remove();
+    let grid = document.getElementsByClassName("grid")[0];
+    while (grid.hasChildNodes()) {
+        grid.removeChild(grid.lastChild);
+    }
     let arr = Array.from(gridElements);
     sort(arr)
-    grid.append(arr);
-    if (gridElements.length === 1) {
-        let main = $(".main");
-        let padding = parseFloat(main.css("padding-top"));
-        let fitWidth = (main.height())*(16/9) - padding;
+    let frag = new DocumentFragment()
+    for(e of arr) {
+        frag.appendChild(e);
+    }
+    grid.append(frag);
+    if (gridFolders.length === 1) {
+        let main = document.getElementsByClassName("main")[0];
+        let padding = parseFloat(window.getComputedStyle(main).getPropertyValue("padding-top"))*2;
+        let fitWidth = (parseFloat(main.offsetHeight) - padding)*(16/9);
         if (fitWidth > parseFloat(gridFolders[0].gridItem.children[1].offsetWidth)) {
-            fitWidth = grid.width();
+            fitWidth = parseFloat(grid.offsetWidth);
         }
         gridFolders[0].gridItem.style.width = fitWidth + "px";
-        let widthDiff = grid.width() - fitWidth;
+        let widthDiff = parseFloat(grid.offsetWidth) - fitWidth;
         gridFolders[0].gridItem.style.marginLeft = (widthDiff/2) + "px";
     }
 }
@@ -139,7 +154,6 @@ function setUrl(string) {
         url += modstring;
     }
     if (url != baseurl) {
-        console.log(url);
         window.history.pushState("", "", url);
     }
 }
@@ -159,20 +173,20 @@ function search(string) {
 function setupHooks() {
     window.onresize = function() {
         if (gridFolders.length === 1) {
-        for (let e of gridElements) {
-            e.style.width = null;
-            e.style.marginLeft = null;
-        }
-        let main = $(".main");
-        let grid = $(".grid");
-        let padding = parseFloat(main.css("padding-top"));
-        let fitWidth = (main.height())*(16/9) - padding;
-        if (fitWidth > parseFloat(gridFolders[0].gridItem.children[1].offsetWidth)) {
-            fitWidth = grid.width();
-        }
-        gridFolders[0].gridItem.style.width = fitWidth + "px";
-        let widthDiff = grid.width() - fitWidth;
-        gridFolders[0].gridItem.style.marginLeft = (widthDiff/2) + "px";
+            for (let f of gridFolders) {
+                f.gridItem.style.width = null;
+                f.gridItem.style.marginLeft = null;
+            }
+            let main = document.getElementsByClassName("main")[0];
+            let grid = document.getElementsByClassName("grid")[0];
+            let padding = parseFloat(window.getComputedStyle(main).getPropertyValue("padding-top"))*2;
+            let fitWidth = (parseFloat(main.offsetHeight) - padding)*(16/9);
+            if (fitWidth > parseFloat(gridFolders[0].gridItem.children[1].offsetWidth)) {
+                fitWidth = parseFloat(grid.offsetWidth);
+            }
+            gridFolders[0].gridItem.style.width = fitWidth + "px";
+            let widthDiff = parseFloat(grid.offsetWidth) - fitWidth;
+            gridFolders[0].gridItem.style.marginLeft = (widthDiff/2) + "px";
         }
     };
 
@@ -268,44 +282,42 @@ function handleUrlArguments() {
     let f = getUrlParams("f");
     let s = getUrlParams("s");
 
-    if (!$.isEmptyObject(f)) {
+    if (!isEmpty(f)) {
         if (f === "song") {
-            $(".filter-song-download-checkbox").click();
+            document.getElementsByClassName("filter-song-download-checkbox")[0].click();
         }
     }
-    if (!$.isEmptyObject(sb)) {
-        if (sb === "name") {$(".order-name-checkbox").click()}
-        else if (sb === "date") {$(".order-date-checkbox").click()}
+    if (!isEmpty(sb)) {
+        if (sb === "name") {document.getElementsByClassName("order-name-checkbox")[0].click()}
+        else if (sb === "date") {document.getElementsByClassName("order-date-checkbox")[0].click()}
     } else {
-        $(".order-date-checkbox").click();
+        document.getElementsByClassName("order-date-checkbox")[0].click();
     }
-    if (!$.isEmptyObject(o)) {
-        if (o === "asc") {$(".sort-asc-checkbox").click()}
-        else if (o === "desc") {$(".sort-desc-checkbox").click()}
+    if (!isEmpty(o)) {
+        if (o === "asc") {document.getElementsByClassName("sort-asc-checkbox")[0].click()}
+        else if (o === "desc") {document.getElementsByClassName("sort-desc-checkbox")[0].click()}
     } else {
-        $(".sort-asc-checkbox").click();
+        document.getElementsByClassName("sort-asc-checkbox")[0].click();
     }
 
-    if (!$.isEmptyObject(s)) {
-        $(".search-field").val(s);
+    if (!isEmpty(s)) {
+        document.getElementsByClassName("search-field")[0].value = s;
     }
 }
 
-function galleryInit() {
-    window.requestAnimationFrame(async function() {
-        await window.preload;
-        searchEnabled = true;
-        let s = getUrlParams("s");
-        if (!$.isEmptyObject(s)) {
-            search(s);
-        } else {
-            search("");
-        }
-    })
-    searchEnabled = false;
+async function galleryInit() {
     setupHooks();
     handleUrlArguments();
     setInterval(slideShow, 7000);
+    await window.preload;
+    searchEnabled = true;
+    let s = getUrlParams("s");
+    if (!isEmpty(s)) {
+        search(s);
+    } else {
+        search("");
+    }
+    searchEnabled = false;
 }
 document.addEventListener("DOMContentLoaded", galleryInit);
 
