@@ -134,6 +134,7 @@ function setUrl(string) {
         url += modstring;
     }
     if (url != baseurl) {
+        console.log(url);
         window.history.pushState("", "", url);
     }
 }
