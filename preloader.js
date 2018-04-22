@@ -47,6 +47,7 @@ function createGridItem(folder) {
             g: g * multiplier,
             b: b * multiplier
         }
+        folder.images[i].downloadUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/" + folder.name + "/" + folder.images[i].name + ":/content";
     }
 
     gridItem.children[1].appendChild(thumbElements);
