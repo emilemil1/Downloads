@@ -55,19 +55,11 @@ function slideShow() {
         let e1 = folder.gridItem.lastElementChild.children[index];
         index = folder.thumbnailIndex = ((index + 1) % images.length);
         let e2 = folder.gridItem.lastElementChild.children[index];
-        let e3 = folder.gridItem.lastElementChild.children[(index+1)%images.length];
-        if (e3 === e1) {
-            e3 = undefined;
-        }
         let rgb = getRGB(images[index].dominantColorDark);
         folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
         folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
         e1.style.opacity = "0";
         e2.style.opacity = "1";
-
-        if (e3 === undefined || folder.darkColor[(index+1)%images.length] !== undefined) {
-            return
-        }
     }
 }
 
@@ -113,7 +105,7 @@ function resizeSource() {
         return;
     }
     let gridWidth = (window.innerWidth - (15 * rem)) * 0.93;
-    let actualItems = Math.min(Math.floor(gridWidth/(10 * rem)), gridFolders.length);
+    let actualItems = Math.min(Math.floor(gridWidth/(16 * rem)), gridFolders.length);
     let width = gridWidth / actualItems;
 
     curr = thumbSizes[0];
@@ -121,8 +113,13 @@ function resizeSource() {
     if (width > thumbSizes[0].width) {
         curr = thumbSizes[1];
     }
-    if(child.src != folder.images[0][curr.name]) {
-        for (folder of gridFolders) {
+
+    for (folder of gridFolders) {
+        if (width < thumbSizes[0].width) {
+            folder.gridItem.classList.add("reduced");
+        }
+        if(child.src != folder.images[0][curr.name]) {
+            let child = folder.gridItem.lastElementChild.firstElementChild;
             for(let i = 0; i < folder.images.length; i++) {
                 let image = folder.gridItem.lastElementChild.children[i];
                 let url = folder.images[i][curr.name];
@@ -159,6 +156,7 @@ function fillGrid(folders) {
     }
     for (let folder of gridFolders) {
         folder.gridItem.lastElementChild.firstElementChild.style.opacity = 0;
+        folder.gridItem.classList.remove("reduced");
     }
 
     gridFolders = folders;
@@ -338,10 +336,17 @@ function setupHooks() {
             record[0].addedNodes.forEach(function(gridItem) {
                 if (gridItem.lastElementChild.firstElementChild.completed) {
                     gridItem.lastElementChild.firstElementChild.style.opacity = 1;
+                    let rgb = getRGB(folder.images[0].dominantColorDark);
+                    gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
+                    gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
+
                 } else {
                     gridItem.lastElementChild.firstElementChild.onload = function() {
                         gridItem.lastElementChild.firstElementChild.style.opacity = 1;
                         gridItem.lastElementChild.firstElementChild.onload = null;
+                        let rgb = getRGB(gridItem.data.images[0].dominantColorDark);
+                        gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
+                        gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
                     }
                 }
 
@@ -352,6 +357,10 @@ function setupHooks() {
 
     mutObs.observe(grid, {childList: true});
 
+}
+
+function getRGB(obj) {
+    return "rgb(" + obj.r + "," + obj.g + "," + obj.b + ")";
 }
 
 function getUrlParams(prop) {

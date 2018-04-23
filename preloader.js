@@ -29,7 +29,7 @@ function returnNewEmptyGridItem() {
 function createGridItem(folder) {
     let gridItem = returnNewEmptyGridItem();
     folder.gridItem = gridItem;
-    folder.title = folder.name.split(".")[0];
+    folder.title = folder.name;
     folder.thumbnailIndex = 0;
     gridItem.firstElementChild.firstElementChild.lastElementChild.innerHTML = folder.title;
     gridItem.data = folder;
@@ -39,7 +39,7 @@ function createGridItem(folder) {
         let img = document.createElement('img');
         img.className = "gallery-image";
         img.alt = folder.title;
-        img.src = folder.images[i].thumbnailLarge;
+        img.src = folder.images[i].thumbnailMedium;
         thumbElements.appendChild(img);
         let dom = folder.images[i].dominantColor;
         let multiplier = 32/((dom.r+dom.g+dom.b)/3)
@@ -52,13 +52,6 @@ function createGridItem(folder) {
     }
 
     gridItem.lastElementChild.appendChild(thumbElements);
-    let rgb = getRGB(folder.images[0].dominantColorDark);
-    gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
-    gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
-}
-
-function getRGB(obj) {
-    return "rgb(" + obj.r + "," + obj.g + "," + obj.b + ")";
 }
 
 function storeData(data) {

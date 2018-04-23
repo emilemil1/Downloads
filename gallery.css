@@ -215,8 +215,8 @@ body {
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-    grid-template-rows: repeat(auto-fit, minmax(5.625rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    grid-template-rows: repeat(auto-fit, minmax(9rem, 1fr));
     grid-gap: 1%;
     grid-row-gap: 1rem;
 }
@@ -243,10 +243,8 @@ body {
     background-color: rgb(32,32,32);
 }
 
-@media (max-width: 62rem) {
-    .sixteenbynine {
-        margin: 0;
-    }
+.grid-item.reduced .sixteenbynine {
+    margin: 0;
 }
 
 .gallery-image {
@@ -262,7 +260,7 @@ body {
     flex-direction: column;
     background-size: 100% 100%;
     color: rgb(32,32,32);
-    transition: opacity 3s;
+    transition: opacity 2s;
     box-shadow: inset 0 0.1rem 0.1rem 0 rgb(0,0,0,0.16), 0 0 0 0.05rem rgb(0,0,0,0.08);
 }
 
@@ -363,12 +361,10 @@ body {
     clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
 }
 
-@media (max-width: 62rem) {
-    .image-ui-container {
-        position:relative;
-        z-index: 0;
-        clip-path: initial;
-    }
+.grid-item.reduced .image-ui-container {
+    position:relative;
+    z-index: 0;
+    clip-path: initial;
 }
 
 .image-bar {
@@ -384,18 +380,16 @@ body {
     padding-bottom: 0.75rem;
     padding-left: 1rem;
     padding-right: 2.5rem;
-    transition: background-color 1.5s;
+    transition: background-color 2s;
     clip-path: polygon(0 0, 100% 0, calc(100% - 2rem) 100%, 0 100%);
 }
 
-@media (max-width: 62rem) {
-    .image-bar {
+.grid-item.reduced .image-ui-container .image-bar {
         width: calc(100% - 2rem);
         padding-right: 1rem;
         clip-path: initial;
         position: relative;
     }
-}
 
 .image-frame {
     position:absolute;
@@ -405,7 +399,7 @@ body {
     right:0;
     z-index: 1;
     background-color: rgb(32,32,32);
-    transition: background-color 1.5s;
+    transition: background-color 2s;
     clip-path: polygon(
         0 0, 100% 0, 100% 100%, 0 100%, 0 0,
         0.5rem 0.5rem, 0.5rem calc(100% - 0.5rem), calc(100% - 0.5rem) calc(100% - 0.5rem), calc(100% - 0.5rem) 0.5rem, 0.5rem 0.5rem
@@ -441,7 +435,6 @@ body {
 .image-download.hover:hover ~ .image-bar .image-tooltip-extra {
     visibility: visible;
 }
-
 
 .image-tooltip-extra {
     visibility: hidden;
