@@ -8,9 +8,8 @@
 - Appearance and polish
 - Favicon
 - Support for more hosting services
-- Request metadata on file viewing
 - Mobile UI
-- Convert all px to rem
+- Fill grid as the user scrolls, page size based on viewport
 */
 
 let itemData = window.itemData; //All folders.
@@ -27,6 +26,17 @@ const thumbSizes = [{name: "thumbnailMedium", width: 300}, {name: "thumbnailLarg
 let searchEnabled = false; //Enables and disables search.
 let smoothLoad = true; //Enables fade-in of loaded images.
 
+let grid; //Grid element.
+let main; //Main element.
+let orderNameCheckbox;
+let searchField;
+let orderDateCheckbox;
+let sortAscCheckbox;
+let sortDescCheckbox;
+let filterSongDownload;
+
+let rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+
 function isEmpty(obj) {
     for (let key in obj) {
         if(obj.hasOwnProperty(key)) {
@@ -42,15 +52,16 @@ function slideShow() {
         let folder = slideShowGridItems[i];
         let index = folder.thumbnailIndex;
         let images = folder.images;
-        let e1 = folder.gridItem.children[1].children[index];
+        let e1 = folder.gridItem.lastElementChild.children[index];
         index = folder.thumbnailIndex = ((index + 1) % images.length);
-        let e2 = folder.gridItem.children[1].children[index];
-        let e3 = folder.gridItem.children[1].children[(index+1)%images.length];
+        let e2 = folder.gridItem.lastElementChild.children[index];
+        let e3 = folder.gridItem.lastElementChild.children[(index+1)%images.length];
         if (e3 === e1) {
             e3 = undefined;
         }
-        folder.gridItem.children[0].children[0].style.backgroundColor = images[index].dominantColorDark;
-        folder.gridItem.children[0].children[1].style.backgroundColor = images[index].dominantColorDark;
+        let rgb = getRGB(images[index].dominantColorDark);
+        folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
+        folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
         e1.style.opacity = "0";
         e2.style.opacity = "1";
 
@@ -62,14 +73,12 @@ function slideShow() {
 
 function sort(folders) {
     folders.sort(function(a, b) {
-        let aData = a.data;
-        let bData = b.data;
         let result;
 
         if (sortBy === "name") {
-            result = aData.name < bData.name;
+            result = a.name < b.name;
         } else if (sortBy === "date") {
-            result = Date.parse(aData.createdDateTime) < Date.parse(bData.createdDateTime);
+            result = Date.parse(a.createdDateTime) < Date.parse(b.createdDateTime);
         }
 
         if (orderBy === "descending") {
@@ -86,14 +95,14 @@ function resizeSource() {
     }
     let curr;
     let folder = gridFolders[0];
-    let child = folder.gridItem.children[1].children[0];
+    let child = folder.gridItem.lastElementChild.firstElementChild;
     if (gridFolders.length === 1) {
         if (child.src = folder.images[0].downloadUrl) {
             return;
         }
 
         for(let i = 0; i < folder.images.length; i++) {
-            let image = folder.gridItem.children[1].children[i];
+            let image = folder.gridItem.lastElementChild.children[i];
             let url = folder.images[i].downloadUrl;
             let img = document.createElement('img');
             img.onload = function() {
@@ -103,17 +112,19 @@ function resizeSource() {
         }
         return;
     }
-    let width = parseFloat(child.offsetWidth);
+    let gridWidth = (window.innerWidth - (15 * rem)) * 0.93;
+    let actualItems = Math.min(Math.floor(gridWidth/(10 * rem)), gridFolders.length);
+    let width = gridWidth / actualItems;
+
     curr = thumbSizes[0];
 
     if (width > thumbSizes[0].width) {
         curr = thumbSizes[1];
     }
-
     if(child.src != folder.images[0][curr.name]) {
         for (folder of gridFolders) {
             for(let i = 0; i < folder.images.length; i++) {
-                let image = folder.gridItem.children[1].children[i];
+                let image = folder.gridItem.lastElementChild.children[i];
                 let url = folder.images[i][curr.name];
                 let img = document.createElement('img');
                 img.onload = function() {
@@ -126,6 +137,20 @@ function resizeSource() {
 }
 
 function fillGrid(folders) {
+    sort(folders);
+    let abort = true;
+    if (gridFolders.length === folders.length) {
+        for (let i = 0; i < gridFolders.length; i++) {
+            if (gridFolders[i].name != folders[i].name) {
+                abort = false;
+                break;
+            }
+        }
+        if (abort) {
+            return;
+        }
+    }
+
     if (gridFolders.length === 1) {
         for (let f of gridFolders) {
             f.gridItem.style.width = null;
@@ -133,38 +158,31 @@ function fillGrid(folders) {
         }
     }
     for (let folder of gridFolders) {
-        folder.gridItem.children[1].children[0].style.opacity = 0;
+        folder.gridItem.lastElementChild.firstElementChild.style.opacity = 0;
     }
 
     gridFolders = folders;
     slideShowGridItems = [];
-    let gridElements = []
     for (let folder of folders) {
-        gridElements.push(folder.gridItem);
         if (folder.images.length > 1) {
             slideShowGridItems.push(folder);
         }
         if (!smoothLoad) {
-            folder.gridItem.children[1].children[0].style.opacity = 1;
+            folder.gridItem.lastElementChild.firstElementChild.style.opacity = 1;
         }
-    }
-
-    let grid = document.getElementsByClassName("grid")[0];
+    };
     while (grid.hasChildNodes()) {
         grid.removeChild(grid.lastChild);
     }
-    let arr = Array.from(gridElements);
-    sort(arr)
     let frag = new DocumentFragment()
-    for(e of arr) {
-        frag.appendChild(e);
+    for(e of gridFolders) {
+        frag.appendChild(e.gridItem);
     }
-    grid.append(frag);
+    grid.appendChild(frag);
     if (gridFolders.length === 1) {
-        let main = document.getElementsByClassName("main")[0];
         let padding = parseFloat(window.getComputedStyle(main).getPropertyValue("padding-top"))*2;
         let fitWidth = (parseFloat(main.offsetHeight) - padding)*(16/9);
-        if (fitWidth > parseFloat(gridFolders[0].gridItem.children[1].offsetWidth)) {
+        if (fitWidth > parseFloat(gridFolders[0].gridItem.lastElementChild.offsetWidth)) {
             fitWidth = parseFloat(grid.offsetWidth);
         }
         gridFolders[0].gridItem.style.width = fitWidth + "px";
@@ -220,25 +238,82 @@ function search(string) {
     let results = [];
     setUrl(string);
     for (let item of itemData) {
-        if (searchItem(item[1], string)) {
-            results.push(item[1]);
+        if (searchItem(item, string)) {
+            results.push(item);
         }
     }
     fillGrid(results);
 }
 
+function clickNameCheckbox() {
+    orderNameCheckbox.disabled = true;
+    orderDateCheckbox.disabled = false;
+    orderNameCheckbox.checked = true;
+    orderDateCheckbox.checked = false;
+    sortBy = "name";
+    if(orderBy === "descending") {
+        search(searchField.value);
+    } else {
+        sortDescCheckbox.click();
+    }
+}
+
+function clickDateCheckbox() {
+    orderDateCheckbox.disabled = true;
+    orderNameCheckbox.disabled = false;
+    orderDateCheckbox.checked = true;
+    orderNameCheckbox.checked = false;
+    sortBy = "date";
+    if(orderBy === "ascending") {
+        search(searchField.value);
+    } else {
+        sortAscCheckbox.click();
+    }
+}
+
+function clickSortAscCheckbox() {
+    sortAscCheckbox.disabled = true;
+    sortDescCheckbox.disabled = false;
+    sortAscCheckbox.checked = true;
+    sortDescCheckbox.checked = false;
+    orderBy = "ascending";
+    search(searchField.value);
+}
+
+function clickSortDescCheckbox() {
+    sortDescCheckbox.disabled = true;
+    sortAscCheckbox.disabled = false;
+    sortDescCheckbox.checked = true;
+    sortAscCheckbox.checked = false;
+    orderBy = "descending";
+    search(searchField.value);
+}
+
+function clickFilterSongDownloadCheckbox(event) {
+    filterSong = !filterSong;
+    search(searchField.value);
+}
+
 function setupHooks() {
+    main = document.getElementsByClassName("main")[0]
+    orderNameCheckbox = document.getElementsByClassName("order-name-checkbox")[0];
+    searchField = document.getElementsByClassName("search-field")[0];
+    orderDateCheckbox = document.getElementsByClassName("order-date-checkbox")[0];
+    sortAscCheckbox = document.getElementsByClassName("sort-asc-checkbox")[0];
+    sortDescCheckbox = document.getElementsByClassName("sort-desc-checkbox")[0];
+    filterSongDownload = document.getElementsByClassName("filter-song-download-checkbox")[0];
+
+    grid = main.firstElementChild;
     window.onresize = function() {
+        rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
         if (gridFolders.length === 1) {
             for (let f of gridFolders) {
                 f.gridItem.style.width = null;
                 f.gridItem.style.marginLeft = null;
             }
-            let main = document.getElementsByClassName("main")[0];
-            let grid = document.getElementsByClassName("grid")[0];
             let padding = parseFloat(window.getComputedStyle(main).getPropertyValue("padding-top"))*2;
             let fitWidth = (parseFloat(main.offsetHeight) - padding)*(16/9);
-            if (fitWidth > parseFloat(gridFolders[0].gridItem.children[1].offsetWidth)) {
+            if (fitWidth > parseFloat(gridFolders[0].gridItem.lastElementChild.offsetWidth)) {
                 fitWidth = parseFloat(grid.offsetWidth);
             }
             gridFolders[0].gridItem.style.width = fitWidth + "px";
@@ -248,72 +323,25 @@ function setupHooks() {
         resizeSource();
     };
 
-    let searchField = document.getElementsByClassName("search-field")[0];
-    let orderNameCheckbox = document.getElementsByClassName("order-name-checkbox")[0];
-    let orderDateCheckbox = document.getElementsByClassName("order-date-checkbox")[0];
-    let sortAscCheckbox = document.getElementsByClassName("sort-asc-checkbox")[0];
-    let sortDescCheckbox = document.getElementsByClassName("sort-desc-checkbox")[0];
-    let filterSongDownload = document.getElementsByClassName("filter-song-download-checkbox")[0];
-
     searchField.oninput = function() {
         search(searchField.value);
     }
 
-    orderNameCheckbox.onchange = function() {
-        orderNameCheckbox.setAttribute("disabled", true);
-        orderDateCheckbox.removeAttribute("disabled");
-        orderDateCheckbox.checked = false;
-        sortBy = "name";
-        if(orderBy === "descending") {
-            search(searchField.value);
-        } else {
-            sortDescCheckbox.click();
-        }
-    }
-
-    orderDateCheckbox.onchange = function() {
-        orderDateCheckbox.setAttribute("disabled", true);
-        orderNameCheckbox.removeAttribute("disabled");
-        orderNameCheckbox.checked = false
-        sortBy = "date";
-        if(orderBy === "ascending") {
-            search(searchField.value);
-        } else {
-            sortAscCheckbox.click();
-        }
-    }
-
-    sortAscCheckbox.onchange = function() {
-        sortAscCheckbox.setAttribute("disabled", true);
-        sortDescCheckbox.removeAttribute("disabled");
-        sortDescCheckbox.checked = false
-        orderBy = "ascending";
-        search(searchField.value);
-    }
-
-    sortDescCheckbox.onchange = function() {
-        sortDescCheckbox.setAttribute("disabled", true);
-        sortAscCheckbox.removeAttribute("disabled");
-        sortAscCheckbox.checked = false;
-        orderBy = "descending";
-        search(searchField.value);
-    }
-
-    filterSongDownload.onchange = function() {
-        filterSong = !filterSong;
-        search(searchField.value);
-    }
-
+    orderNameCheckbox.onchange = clickNameCheckbox;
+    orderDateCheckbox.onchange = clickDateCheckbox;
+    sortAscCheckbox.onchange = clickSortAscCheckbox;
+    sortDescCheckbox.onchange = clickSortDescCheckbox;
+    filterSongDownload.onchange = clickFilterSongDownloadCheckbox;
 
     let mutObs = new MutationObserver(function (record) {
         if (smoothLoad) {
             record[0].addedNodes.forEach(function(gridItem) {
-                if (gridItem.children[1].children[0].completed) {
-                    gridItem.children[1].children[0].style.opacity = 1;
+                if (gridItem.lastElementChild.firstElementChild.completed) {
+                    gridItem.lastElementChild.firstElementChild.style.opacity = 1;
                 } else {
-                    gridItem.children[1].children[0].onload = function() {
-                        gridItem.children[1].children[0].style.opacity = 1;
-                        gridItem.children[1].children[0].onload = null;
+                    gridItem.lastElementChild.firstElementChild.onload = function() {
+                        gridItem.lastElementChild.firstElementChild.style.opacity = 1;
+                        gridItem.lastElementChild.firstElementChild.onload = null;
                     }
                 }
 
@@ -322,7 +350,7 @@ function setupHooks() {
         }
     })
 
-    mutObs.observe(document.getElementsByClassName("grid")[0], {childList: true});
+    mutObs.observe(grid, {childList: true});
 
 }
 
@@ -354,27 +382,29 @@ function getUrlParams(prop) {
 }
 
 function handleUrlArguments() {
-    let sb = getUrlParams("sb");
-    let o = getUrlParams("o");
-    let f = getUrlParams("f");
-    let s = getUrlParams("s");
+    let params = getUrlParams();
+    let sb = params.sb;
+    let o = params.o;
+    let f = params.f;
+    let s = params.s;
 
     if (!isEmpty(f)) {
         if (f === "song") {
-            document.getElementsByClassName("filter-song-download-checkbox")[0].click();
+            clickFilterSongDownloadCheckbox();
+            filterSongDownload.checked = true;
         }
     }
     if (!isEmpty(sb)) {
-        if (sb === "name") {document.getElementsByClassName("order-name-checkbox")[0].click()}
-        else if (sb === "date") {document.getElementsByClassName("order-date-checkbox")[0].click()}
+        if (sb === "name") {clickNameCheckbox()}
+        else if (sb === "date") {clickDateCheckbox()}
     } else {
-        document.getElementsByClassName("order-date-checkbox")[0].click();
+        clickDateCheckbox();
     }
     if (!isEmpty(o)) {
-        if (o === "asc") {document.getElementsByClassName("sort-asc-checkbox")[0].click()}
-        else if (o === "desc") {document.getElementsByClassName("sort-desc-checkbox")[0].click()}
+        if (o === "asc") {clickSortAscCheckbox()}
+        else if (o === "desc") {clickSortDescCheckbox()}
     } else {
-        document.getElementsByClassName("sort-asc-checkbox")[0].click();
+        clickSortAscCheckbox();
     }
 
     if (!isEmpty(s)) {

@@ -1,21 +1,29 @@
 /*eslint-env es6, browser*/
 
-window.itemData = new Map();
+window.itemData = [];
 
 function returnNewEmptyGridItem() {
-    let item = document.createElement('div');
-    item.setAttribute("class", "grid-item");
-    item.innerHTML =
-        "<div class='image-ui-container'>\
-            <div class='image-bar'>\
-                <span class='image-menubutton'><div></div><div></div><div></div></span>\
-                <span class='image-title'></span>\
-            </div>\
-            <div class='image-frame'></div>\
-        </div>\
-        <div class='sixteenbynine'>\
-        </div>";
-    return item;
+    let root = document.createElement('div');
+    root.className = "grid-item";
+    root.appendChild(document.createElement('div'));
+    root.appendChild(document.createElement('div'));
+    root.firstElementChild.className = "image-ui-container";
+    root.lastElementChild.className = "sixteenbynine";
+    let item = root.firstElementChild;
+    item.appendChild(document.createElement('div'));
+    item.appendChild(document.createElement('div'));
+    item.firstElementChild.className = "image-bar";
+    item.lastElementChild.className = "image-frame";
+    item = item.firstElementChild;
+    item.appendChild(document.createElement('span'));
+    item.appendChild(document.createElement('span'));
+    item.firstElementChild.className = "image-menubutton";
+    item.lastElementChild.className = "image-title";
+    item = item.firstElementChild;
+    item.appendChild(document.createElement('div'));
+    item.appendChild(document.createElement('div'));
+    item.appendChild(document.createElement('div'));
+    return root;
 }
 
 function createGridItem(folder) {
@@ -23,40 +31,40 @@ function createGridItem(folder) {
     folder.gridItem = gridItem;
     folder.title = folder.name.split(".")[0];
     folder.thumbnailIndex = 0;
-    gridItem.children[0].children[0].children[1].innerHTML = folder.title;
+    gridItem.firstElementChild.firstElementChild.lastElementChild.innerHTML = folder.title;
     gridItem.data = folder;
-
 
     let thumbElements = new DocumentFragment();
     for (let i=0; i<folder.images.length; i++) {
         let img = document.createElement('img');
-        img.setAttribute("class", "gallery-image");
-        img.setAttribute("alt", folder.title);
-        img.setAttribute("src", folder.images[i].thumbnailLarge);
+        img.className = "gallery-image";
+        img.alt = folder.title;
+        img.src = folder.images[i].thumbnailLarge;
         thumbElements.appendChild(img);
-        let r = folder.images[i].dominantColor.r;
-        let g = folder.images[i].dominantColor.g;
-        let b = folder.images[i].dominantColor.b;
-        let multiplier = 32/((r+g+b)/3)
+        let dom = folder.images[i].dominantColor;
+        let multiplier = 32/((dom.r+dom.g+dom.b)/3)
         folder.images[i].dominantColorDark = {
-            r: r * multiplier,
-            g: g * multiplier,
-            b: b * multiplier
+            r: dom.r * multiplier,
+            g: dom.g * multiplier,
+            b: dom.b * multiplier
         }
         folder.images[i].downloadUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/" + folder.name + "/" + folder.images[i].name + ":/content";
     }
 
-    gridItem.children[1].appendChild(thumbElements);
-    gridItem.children[0].children[0].style.backgroundColor = folder.images[0].dominantColorDark;
-    gridItem.children[0].children[1].style.backgroundColor = folder.images[0].dominantColorDark;
+    gridItem.lastElementChild.appendChild(thumbElements);
+    let rgb = getRGB(folder.images[0].dominantColorDark);
+    gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
+    gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
+}
+
+function getRGB(obj) {
+    return "rgb(" + obj.r + "," + obj.g + "," + obj.b + ")";
 }
 
 function storeData(data) {
     for (let folder of data) {
-        if (!window.itemData.has(folder.name)) {
-            createGridItem(folder);
-            window.itemData.set(folder.name, folder);
-        }
+        createGridItem(folder);
+        window.itemData.push(folder);
     }
 }
 
