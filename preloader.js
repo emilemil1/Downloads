@@ -1,7 +1,6 @@
 /*eslint-env es6, browser*/
 
 window.itemData = new Map();
-window.slideShowGridItems = [];
 
 function returnNewEmptyGridItem() {
     let item = document.createElement('div');
@@ -34,9 +33,6 @@ function createGridItem(folder) {
         img.setAttribute("class", "gallery-image");
         img.setAttribute("alt", folder.title);
         img.setAttribute("src", folder.images[i].thumbnailLarge);
-        if (thumbElements.childElementCount === 0) {
-            img.style.opacity = 1;
-        }
         thumbElements.appendChild(img);
         let r = folder.images[i].dominantColor.r;
         let g = folder.images[i].dominantColor.g;
@@ -53,10 +49,6 @@ function createGridItem(folder) {
     gridItem.children[1].appendChild(thumbElements);
     gridItem.children[0].children[0].style.backgroundColor = folder.images[0].dominantColorDark;
     gridItem.children[0].children[1].style.backgroundColor = folder.images[0].dominantColorDark;
-
-    if (folder.images.length > 1) {
-        window.slideShowGridItems.push(folder);
-    }
 }
 
 function storeData(data) {

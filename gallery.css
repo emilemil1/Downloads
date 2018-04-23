@@ -371,7 +371,6 @@ body {
 }
 
 .grid-item {
-    transition: opacity 1s;
     box-shadow: 0.25rem 0.25rem 1.5rem -0.55rem rgb(0,0,0,0.75);
     position:relative;
 }

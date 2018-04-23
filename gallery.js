@@ -15,7 +15,7 @@
 
 let itemData = window.itemData; //All folders.
 let gridFolders = []; //Folders that match the current search.
-let slideShowGridItems = window.slideShowGridItems; //Folders that contain multiple images.
+let slideShowGridItems = []; //Visible folders that contain multiple images.
 
 let urlParams; // Containing the url search/sort parameters.
 let sortBy = "date" //sorting order
@@ -25,6 +25,7 @@ let filterSong = false; //only display folders with a song download
 const thumbSizes = [{name: "thumbnailMedium", width: 300}, {name: "thumbnailLarge", width: 800}];
 
 let searchEnabled = false; //Enables and disables search.
+let smoothLoad = true; //Enables fade-in of loaded images.
 
 function isEmpty(obj) {
     for (let key in obj) {
@@ -131,12 +132,21 @@ function fillGrid(folders) {
             f.gridItem.style.marginLeft = null;
         }
     }
+    for (let folder of gridFolders) {
+        folder.gridItem.children[1].children[0].style.opacity = 0;
+    }
 
-    gridFolders = [];
+    gridFolders = folders;
+    slideShowGridItems = [];
     let gridElements = []
     for (let folder of folders) {
-        gridFolders.push(folder);
         gridElements.push(folder.gridItem);
+        if (folder.images.length > 1) {
+            slideShowGridItems.push(folder);
+        }
+        if (!smoothLoad) {
+            folder.gridItem.children[1].children[0].style.opacity = 1;
+        }
     }
 
     let grid = document.getElementsByClassName("grid")[0];
@@ -295,6 +305,19 @@ function setupHooks() {
     }
 
 
+    let mutObs = new MutationObserver(function (record) {
+        if (smoothLoad) {
+            record[0].addedNodes.forEach(function(gridItem) {
+            console.log(gridItem.children[1].children[0].complete);
+                gridItem.children[1].children[0].style.opacity = 1;
+
+            });
+        smoothLoad = false;
+        }
+    })
+
+    mutObs.observe(document.getElementsByClassName("grid")[0], {childList: true});
+
 }
 
 function getUrlParams(prop) {
@@ -354,7 +377,6 @@ function handleUrlArguments() {
 }
 
 async function galleryInit() {
-    searchEnabled = false;
     setupHooks();
     handleUrlArguments();
     setInterval(slideShow, 7000);
