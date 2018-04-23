@@ -308,8 +308,14 @@ function setupHooks() {
     let mutObs = new MutationObserver(function (record) {
         if (smoothLoad) {
             record[0].addedNodes.forEach(function(gridItem) {
-            console.log(gridItem.children[1].children[0].complete);
-                gridItem.children[1].children[0].style.opacity = 1;
+                if (gridItem.children[1].children[0].completed) {
+                    gridItem.children[1].children[0].style.opacity = 1;
+                } else {
+                    gridItem.children[1].children[0].onload = function() {
+                        gridItem.children[1].children[0].style.opacity = 1;
+                        gridItem.children[1].children[0].onload = null;
+                    }
+                }
 
             });
         smoothLoad = false;
