@@ -11,7 +11,6 @@
 - Request metadata on file viewing
 - Mobile UI
 - Convert all px to rem
-- dynamic thumbnail resolution
 */
 
 let itemData = window.itemData; //All folders.
@@ -22,6 +21,8 @@ let urlParams; // Containing the url search/sort parameters.
 let sortBy = "date" //sorting order
 let orderBy = "ascending" //sorting order
 let filterSong = false; //only display folders with a song download
+
+const thumbSizes = [{name: "thumbnailMedium", width: 300}, {name: "thumbnailLarge", width: 800}];
 
 let searchEnabled = false; //Enables and disables search.
 
@@ -78,6 +79,51 @@ function sort(folders) {
     })
 }
 
+function resizeSource() {
+    if (gridFolders.length === 0) {
+        return;
+    }
+    let curr;
+    let folder = gridFolders[0];
+    let child = folder.gridItem.children[1].children[0];
+    if (gridFolders.length === 1) {
+        if (child.src = folder.images[0].downloadUrl) {
+            return;
+        }
+
+        for(let i = 0; i < folder.images.length; i++) {
+            let image = folder.gridItem.children[1].children[i];
+            let url = folder.images[i].downloadUrl;
+            let img = document.createElement('img');
+            img.onload = function() {
+                image.src = img.src;
+            }
+            img.src = url;
+        }
+        return;
+    }
+    let width = parseFloat(child.offsetWidth);
+    curr = thumbSizes[0];
+
+    if (width > thumbSizes[0].width) {
+        curr = thumbSizes[1];
+    }
+
+    if(child.src != folder.images[0][curr.name]) {
+        for (folder of gridFolders) {
+            for(let i = 0; i < folder.images.length; i++) {
+                let image = folder.gridItem.children[1].children[i];
+                let url = folder.images[i][curr.name];
+                let img = document.createElement('img');
+                img.onload = function() {
+                    image.src = img.src;
+                }
+                img.src = url;
+            }
+        }
+    }
+}
+
 function fillGrid(folders) {
     if (gridFolders.length === 1) {
         for (let f of gridFolders) {
@@ -115,6 +161,7 @@ function fillGrid(folders) {
         let widthDiff = parseFloat(grid.offsetWidth) - fitWidth;
         gridFolders[0].gridItem.style.marginLeft = (widthDiff/2) + "px";
     }
+    resizeSource();
 }
 
 function searchItem(item, string) {
@@ -188,6 +235,7 @@ function setupHooks() {
             let widthDiff = parseFloat(grid.offsetWidth) - fitWidth;
             gridFolders[0].gridItem.style.marginLeft = (widthDiff/2) + "px";
         }
+        resizeSource();
     };
 
     let searchField = document.getElementsByClassName("search-field")[0];
