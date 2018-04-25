@@ -9,11 +9,14 @@
 - Favicon
 - Support for more hosting services
 - Mobile UI
-- Fill grid as the user scrolls, page size based on viewport
+- Remove src from elements far from view (-2000)
+- Prevent slideshow on elements not in view (-500)
+- improve search by searching data
 */
 
 let itemData = window.itemData; //All folders.
-let gridFolders = []; //Folders that match the current search.
+let gridFolders = []; //Visible folders that match the current search.
+let searchFolders = []; //All folders that match the current search.
 let slideShowGridItems = []; //Visible folders that contain multiple images.
 
 let urlParams; // Containing the url search/sort parameters.
@@ -21,11 +24,16 @@ let sortBy = "date" //sorting order
 let orderBy = "ascending" //sorting order
 let filterSong = false; //only display folders with a song download
 
-const thumbSizes = [{name: "thumbnailMedium", width: 300}, {name: "thumbnailLarge", width: 800}];
+const thumbSizes = [{name: "thumbnailMedium", width: 350}, {name: "thumbnailLarge", width: 800}, {name: "downloadUrl", width: 1600}];
+let curr;
+let itemWidth;
+let prevWidth = 0;
+let windowChanged = true;
 
 let searchEnabled = false; //Enables and disables search.
-let smoothLoad = true; //Enables fade-in of loaded images.
+let pageSize = 100;
 
+let loadmore;
 let grid; //Grid element.
 let main; //Main element.
 let orderNameCheckbox;
@@ -34,6 +42,8 @@ let orderDateCheckbox;
 let sortAscCheckbox;
 let sortDescCheckbox;
 let filterSongDownload;
+let mutator;
+let scrollPos;
 
 let rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
 
@@ -47,19 +57,63 @@ function isEmpty(obj) {
     return true;
 }
 
+function mod(n,m) {
+    return ((n % m) + m) % m;
+}
+
 function slideShow() {
     for (let i = 0; i < slideShowGridItems.length; i++) {
         let folder = slideShowGridItems[i];
-        let index = folder.thumbnailIndex;
         let images = folder.images;
-        let e1 = folder.gridItem.lastElementChild.children[index];
-        index = folder.thumbnailIndex = ((index + 1) % images.length);
-        let e2 = folder.gridItem.lastElementChild.children[index];
+        let e1 = folder.gridItem.lastElementChild.firstElementChild;
+        let e2;
+        if (e1.src === images[folder.thumbnailIndex][curr.name]) {
+            e2 = folder.gridItem.lastElementChild.lastElementChild;
+        } else {
+            e2 = e1;
+            e1 = folder.gridItem.lastElementChild.lastElementChild;
+        }
+        folder.thumbnailIndex = mod(folder.thumbnailIndex + 1,images.length);
+        let index = folder.thumbnailIndex;
+
+        if (folder.images[index].dominantColorDark === undefined) {
+            let dom = folder.images[index].dominantColor;
+            let multiplier = 96/(dom.r+dom.g+dom.b)
+            folder.images[index].dominantColorDark = {
+                r: dom.r * multiplier,
+                g: dom.g * multiplier,
+                b: dom.b * multiplier
+            }
+        }
+
+
         let rgb = getRGB(images[index].dominantColorDark);
-        folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
-        folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
-        e1.style.opacity = "0";
-        e2.style.opacity = "1";
+        e2.src = folder.images[index][curr.name];
+        if (e1.complete && e2.complete) {
+            e1.style.opacity = "0";
+            e2.style.opacity = "1";
+            folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
+            folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
+            continue;
+        }
+
+        e1.onload = function() {
+            if (e2.complete) {
+                e1.style.opacity = "0";
+                e2.style.opacity = "1";
+                folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
+                folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
+            }
+        }
+
+        e2.onload = function() {
+            if (e1.complete) {
+                e1.style.opacity = "0";
+                e2.style.opacity = "1";
+                folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
+                folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
+            }
+        }
     }
 }
 
@@ -68,126 +122,199 @@ function sort(folders) {
         let result;
 
         if (sortBy === "name") {
-            result = a.name < b.name;
+            let aName = a.name.toLowerCase();
+            let bName = b.name.toLowerCase();
+            if (aName < bName) {
+                result = 1;
+            } else if (aName > bName) {
+                result = -1;
+            } else {
+                result = 0;
+            }
         } else if (sortBy === "date") {
-            result = Date.parse(a.createdDateTime) < Date.parse(b.createdDateTime);
+            if (a.date < b.date) {
+                result = -1;
+            } else if (a.date > b.date) {
+                result = 1;
+            } else {
+                result = 0;
+            }
         }
 
         if (orderBy === "descending") {
-            result = !result;
+            result = -result;
         }
-
         return result;
     })
 }
 
+function calcItemWidth() {
+    if (windowChanged === false) {
+        return;
+    }
+    windowChanged = true;
+    let windowWidth = document.documentElement.clientWidth + (main.clientWidth - main.offsetWidth);
+    if (gridFolders.length !== 1) {
+        let gridWidth = parseFloat(window.getComputedStyle(grid).getPropertyValue("width"));
+        let maxGridItems = 1;
+        while((maxGridItems * 16 * rem) + (gridWidth * 0.01 * (maxGridItems-1)) < gridWidth) {
+            maxGridItems++;
+        }
+        maxGridItems--;
+        maxGridItems = Math.min(maxGridItems, gridFolders.length);
+        let totalItemWidth = gridWidth - (gridWidth * 0.01 * (maxGridItems-1));
+        itemWidth = totalItemWidth/maxGridItems;
+    } else {
+        let padding = parseFloat(window.getComputedStyle(main).getPropertyValue("padding-top"))*2;
+        let fitWidth = (parseFloat(main.offsetHeight) - padding)*(16/9);
+        if (fitWidth > ((windowWidth - (15 * rem)) * 0.93)) {
+            fitWidth = ((windowWidth - (15 * rem)) * 0.93);
+        }
+        itemWidth = fitWidth;
+    }
+}
+
 function resizeSource() {
+    let width = itemWidth;
+    let nodelist = [];
+    for(folder of gridFolders) {
+        nodelist.push(folder.gridItem.lastElementChild);
+        nodelist.push(folder.gridItem.firstElementChild);
+        nodelist.push(folder.gridItem.firstElementChild.firstElementChild);
+
+    }
     if (gridFolders.length === 0) {
         return;
     }
-    let curr;
-    let folder = gridFolders[0];
-    let child = folder.gridItem.lastElementChild.firstElementChild;
     if (gridFolders.length === 1) {
-        if (child.src = folder.images[0].downloadUrl) {
-            return;
-        }
-
-        for(let i = 0; i < folder.images.length; i++) {
-            let image = folder.gridItem.lastElementChild.children[i];
-            let url = folder.images[i].downloadUrl;
-            let img = document.createElement('img');
-            img.onload = function() {
-                image.src = img.src;
+        for (let img of folder.images) {
+            img.downloadUrl = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/" + encodeURIComponent(folder.name);
+            if (folder.suffix !== undefined) {
+                img.downloadUrl += " - " + folder.suffix;
             }
-            img.src = url;
+            img.downloadUrl += "/" + encodeURIComponent(img.name) + ":/content";
         }
-        return;
-    }
-    let gridWidth = (window.innerWidth - (15 * rem)) * 0.93;
-    let actualItems = Math.min(Math.floor(gridWidth/(16 * rem)), gridFolders.length);
-    let width = gridWidth / actualItems;
+        curr = thumbSizes[2];
+        nodelist.forEach((node) => {
+            node.classList.remove("reduced");
+        });
+    } else {
+        if (width > thumbSizes[0].width) {
+            curr = thumbSizes[1]
+            nodelist.forEach((node) => {
+                node.classList.remove("reduced");
+            });
+        } else {
+            curr = thumbSizes[0]
+            nodelist.forEach((node) => {
+                node.classList.add("reduced");
+            });
+        }
 
-    curr = thumbSizes[0];
-
-    if (width > thumbSizes[0].width) {
-        curr = thumbSizes[1];
     }
+
+    console.log(width);
+    console.log(curr.width);
 
     for (folder of gridFolders) {
-        if (width < thumbSizes[0].width) {
-            folder.gridItem.classList.add("reduced");
+        if (prevWidth != itemWidth) {
+            folder.gridItem.style.width = itemWidth + "px";
         }
-        if(child.src != folder.images[0][curr.name]) {
-            let child = folder.gridItem.lastElementChild.firstElementChild;
-            for(let i = 0; i < folder.images.length; i++) {
-                let image = folder.gridItem.lastElementChild.children[i];
-                let url = folder.images[i][curr.name];
-                let img = document.createElement('img');
-                img.onload = function() {
-                    image.src = img.src;
-                }
-                img.src = url;
+        if (width > thumbSizes[1].width) {
+            if (prevWidth != itemWidth) {
+                folder.gridItem.style.height = itemWidth/(16/9) + "px";
+            }
+        } else {
+            if (prevWidth != itemWidth) {
+                folder.gridItem.style.height = ((itemWidth/(16/9)) + 42) + "px";
             }
         }
+        if (folder.images.length === 1) {
+            if (folder.gridItem.lastElementChild.firstElementChild.src !== folder.images[0][curr.name]) {
+                folder.gridItem.lastElementChild.firstElementChild.src = folder.images[0][curr.name];
+            }
+        } else {
+            folder.gridItem.lastElementChild.firstElementChild.src = folder.images[folder.thumbnailIndex][curr.name];
+        }
     }
+    prevWidth = itemWidth;
+}
+
+function loadMore() {
+    let moreFolders = [];
+
+    for (let i = gridFolders.length; moreFolders.length < pageSize; i++) {
+        if (gridFolders.length === searchFolders.length) {
+            loadmore.style.display = "none";
+            break;
+        }
+        gridFolders.push(searchFolders[i]);
+        moreFolders.push(searchFolders[i]);
+
+        if (searchFolders[i].images.length > 1) {
+            slideShowGridItems.push(searchFolders[i]);
+            console.log(searchFolders[i].name);
+        }
+
+    }
+
+    let frag = new DocumentFragment()
+    for(e of moreFolders) {
+        frag.appendChild(e.gridItem);
+    }
+    resizeSource();
+    grid.appendChild(frag);
 }
 
 function fillGrid(folders) {
     sort(folders);
-    let abort = true;
-    if (gridFolders.length === folders.length) {
-        for (let i = 0; i < gridFolders.length; i++) {
-            if (gridFolders[i].name != folders[i].name) {
-                abort = false;
-                break;
-            }
-        }
-        if (abort) {
-            return;
-        }
-    }
-
     if (gridFolders.length === 1) {
         for (let f of gridFolders) {
             f.gridItem.style.width = null;
             f.gridItem.style.marginLeft = null;
         }
     }
-    for (let folder of gridFolders) {
-        folder.gridItem.lastElementChild.firstElementChild.style.opacity = 0;
-        folder.gridItem.classList.remove("reduced");
+
+    searchFolders = folders;
+    gridFolders = [];
+    for (folder of folders) {
+        if (gridFolders.length === pageSize) {
+            break;
+        }
+        gridFolders.push(folder);
     }
 
-    gridFolders = folders;
+    calcItemWidth(folders.length);
     slideShowGridItems = [];
-    for (let folder of folders) {
+    for (let folder of gridFolders) {
         if (folder.images.length > 1) {
             slideShowGridItems.push(folder);
         }
-        if (!smoothLoad) {
-            folder.gridItem.lastElementChild.firstElementChild.style.opacity = 1;
-        }
     };
-    while (grid.hasChildNodes()) {
-        grid.removeChild(grid.lastChild);
-    }
+    mutator.disconnect();
+    main.removeChild(grid);
+    grid = document.createElement('div');
+    grid.className = "grid";
+    main.insertBefore(grid, loadmore);
+    mutator.observe(grid, {childList: true});
+
     let frag = new DocumentFragment()
     for(e of gridFolders) {
         frag.appendChild(e.gridItem);
     }
+    resizeSource();
     grid.appendChild(frag);
+
+    if (gridFolders < searchFolders) {
+        loadmore.style.display = "grid";
+    } else {
+        loadmore.style.display = "none";
+    }
     if (gridFolders.length === 1) {
-        let padding = parseFloat(window.getComputedStyle(main).getPropertyValue("padding-top"))*2;
-        let fitWidth = (parseFloat(main.offsetHeight) - padding)*(16/9);
-        if (fitWidth > parseFloat(gridFolders[0].gridItem.lastElementChild.offsetWidth)) {
-            fitWidth = parseFloat(grid.offsetWidth);
-        }
-        gridFolders[0].gridItem.style.width = fitWidth + "px";
-        let widthDiff = parseFloat(grid.offsetWidth) - fitWidth;
+        gridFolders[0].gridItem.style.width = itemWidth + "px";
+        let widthDiff = parseFloat(grid.offsetWidth) - itemWidth;
         gridFolders[0].gridItem.style.marginLeft = (widthDiff/2) + "px";
     }
-    resizeSource();
 }
 
 function searchItem(item, string) {
@@ -293,33 +420,35 @@ function clickFilterSongDownloadCheckbox(event) {
 }
 
 function setupHooks() {
-    main = document.getElementsByClassName("main")[0]
-    orderNameCheckbox = document.getElementsByClassName("order-name-checkbox")[0];
+    main = document.getElementsByClassName("main")[0];
+    orderNameCheckbox = document.getElementById("order-name");
     searchField = document.getElementsByClassName("search-field")[0];
-    orderDateCheckbox = document.getElementsByClassName("order-date-checkbox")[0];
-    sortAscCheckbox = document.getElementsByClassName("sort-asc-checkbox")[0];
-    sortDescCheckbox = document.getElementsByClassName("sort-desc-checkbox")[0];
-    filterSongDownload = document.getElementsByClassName("filter-song-download-checkbox")[0];
+    orderDateCheckbox = document.getElementById("order-date");
+    sortAscCheckbox = document.getElementById("sort-asc");
+    sortDescCheckbox = document.getElementById("sort-desc");
+    filterSongDownload = document.getElementById("filter-song-download");
 
     grid = main.firstElementChild;
+    loadmore = main.lastElementChild;
     window.onresize = function() {
+        windowChanged = true;
         rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        calcItemWidth();
         if (gridFolders.length === 1) {
             for (let f of gridFolders) {
                 f.gridItem.style.width = null;
                 f.gridItem.style.marginLeft = null;
             }
-            let padding = parseFloat(window.getComputedStyle(main).getPropertyValue("padding-top"))*2;
-            let fitWidth = (parseFloat(main.offsetHeight) - padding)*(16/9);
-            if (fitWidth > parseFloat(gridFolders[0].gridItem.lastElementChild.offsetWidth)) {
-                fitWidth = parseFloat(grid.offsetWidth);
-            }
-            gridFolders[0].gridItem.style.width = fitWidth + "px";
-            let widthDiff = parseFloat(grid.offsetWidth) - fitWidth;
-            gridFolders[0].gridItem.style.marginLeft = (widthDiff/2) + "px";
+            gridFolders[0].gridItem.style.width = itemWidth + "px";
+            let widthDiff = parseFloat(grid.offsetWidth) - itemWidth;
+            gridFolders[0].gridItem.style.marginLeft = (widthDiff/2) + "px";;
         }
         resizeSource();
     };
+
+    loadmore.onclick = function() {
+        loadMore();
+    }
 
     searchField.oninput = function() {
         search(searchField.value);
@@ -331,32 +460,28 @@ function setupHooks() {
     sortDescCheckbox.onchange = clickSortDescCheckbox;
     filterSongDownload.onchange = clickFilterSongDownloadCheckbox;
 
-    let mutObs = new MutationObserver(function (record) {
-        if (smoothLoad) {
-            record[0].addedNodes.forEach(function(gridItem) {
-                if (gridItem.lastElementChild.firstElementChild.completed) {
+    mutator = new MutationObserver(function (record) {
+        record[0].addedNodes.forEach(function(gridItem) {
+            if (gridItem.lastElementChild.firstElementChild.completed) {
+                gridItem.lastElementChild.firstElementChild.style.opacity = 1;
+                let rgb = getRGB(folder.images[0].dominantColorDark);
+                gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
+                gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
+
+            } else {
+                gridItem.lastElementChild.firstElementChild.onload = function() {
                     gridItem.lastElementChild.firstElementChild.style.opacity = 1;
-                    let rgb = getRGB(folder.images[0].dominantColorDark);
+                    gridItem.lastElementChild.firstElementChild.onload = null;
+                    let rgb = getRGB(gridItem.data.images[0].dominantColorDark);
                     gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
                     gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
-
-                } else {
-                    gridItem.lastElementChild.firstElementChild.onload = function() {
-                        gridItem.lastElementChild.firstElementChild.style.opacity = 1;
-                        gridItem.lastElementChild.firstElementChild.onload = null;
-                        let rgb = getRGB(gridItem.data.images[0].dominantColorDark);
-                        gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
-                        gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
-                    }
                 }
+            }
 
-            });
-        smoothLoad = false;
-        }
-    })
+        });
+    });
 
-    mutObs.observe(grid, {childList: true});
-
+    mutator.observe(grid, {childList: true});
 }
 
 function getRGB(obj) {

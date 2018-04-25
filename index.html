@@ -2,8 +2,8 @@
 <html>
 <head>
     <title>Image Gallery</title>
-    <link rel="stylesheet" type="text/css" href="gallery.css">
     <script type="text/javascript" src="preloader.js"></script>
+    <link rel="stylesheet" type="text/css" href="gallery.css">
     <script type="text/javascript" src="gallery.js"></script>
 </head>
 <body>
@@ -12,43 +12,46 @@
     <div class="sidebar">
         <form class="search-form">
             <input class="search-field" placeholder="Search">
-            <div class="search-aside">
-                <input type="button" value="&#8981" class="search-symbol">
-            </div>
+            <div class="search-symbol">&#8981</div>
         </form>
         <div class="order"><div class="sorting-text">Sort by</div>
-            <div class="sidebar-panel">
-                <div class="order-name custom-checkbox">
-                    <input type="checkbox" class="order-name-checkbox">
+            <div class="order-button-panel">
+                <div class="custom-checkbox">
+                    <input type="checkbox" id="order-name" class="custom-checkbox-hidden">
                     <div class="custom-checkbox-indicator">Name</div>
                 </div>
                 <div class="order-date custom-checkbox">
-                    <input type="checkbox" class="order-date-checkbox">
+                    <input type="checkbox" id="order-date" class="custom-checkbox-hidden">
                     <div class="custom-checkbox-indicator">Date</div>
                 </div>
             </div>
         </div>
         <div class="sort"><div class="sorting-text">Order</div>
-            <div class="sidebar-panel">
-                <div class="sort-desc custom-checkbox">
-                    <input type="checkbox" class="sort-desc-checkbox">
-                    <div class="custom-checkbox-indicator">&#8595;</div>
+            <div class="sort-button-panel">
+                <div class="custom-checkbox">
+                    <input type="checkbox" id="sort-desc" class="custom-checkbox-hidden">
+                    <div class="custom-checkbox-indicator">Desc</div>
                 </div>
-                <div class="sort-asc custom-checkbox">
-                    <input type="checkbox" class="sort-asc-checkbox">
-                    <div class="custom-checkbox-indicator">&#8593;</div>
+                <div class="custom-checkbox">
+                    <input type="checkbox" id="sort-asc" class="custom-checkbox-hidden">
+                    <div class="custom-checkbox-indicator">Asc</div>
                 </div>
             </div>
         </div>
         <div class="filters"><div class="sorting-text">Filter</div>
-            <div class="filter-song-download custom-checkbox">
-                <input type="checkbox" class="filter-song-download-checkbox">
+            <div id="filter-song-download" class="custom-checkbox">
+                <input type="checkbox" id="filter-song-download" class="custom-checkbox-hidden">
                 <div class="custom-checkbox-indicator">Song Download</div>
             </div>
         </div>
     </div>
     <div class="main">
         <div class="grid"></div>
+        <div id="loadmore" class="loadmore">
+            <div id="loadmore2" class="custom-checkbox">
+                <button id="loadmore-indicator" class="custom-checkbox-indicator">Show More Results</button>
+            </div>
+        </div>
     </div>
 </body>
 </html>
