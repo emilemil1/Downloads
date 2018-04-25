@@ -12,6 +12,8 @@
 - Remove src from elements far from view (-2000)
 - Prevent slideshow on elements not in view (-500)
 - improve search by searching data
+- light/dark theme
+- fade in elements on initial load.
 */
 
 let itemData = window.itemData; //All folders.
@@ -21,7 +23,7 @@ let slideShowGridItems = []; //Visible folders that contain multiple images.
 
 let urlParams; // Containing the url search/sort parameters.
 let sortBy = "date" //sorting order
-let orderBy = "ascending" //sorting order
+let orderBy = "descending" //sorting order
 let filterSong = false; //only display folders with a song download
 
 const thumbSizes = [{name: "thumbnailMedium", width: 350}, {name: "thumbnailLarge", width: 800}, {name: "downloadUrl", width: 1600}];
@@ -215,12 +217,13 @@ function resizeSource() {
 
     console.log(width);
     console.log(curr.width);
+    console.log(prevWidth);
 
     for (folder of gridFolders) {
         if (prevWidth != itemWidth) {
             folder.gridItem.style.width = itemWidth + "px";
         }
-        if (width > thumbSizes[1].width) {
+        if (width > thumbSizes[0].width) {
             if (prevWidth != itemWidth) {
                 folder.gridItem.style.height = itemWidth/(16/9) + "px";
             }
@@ -343,8 +346,8 @@ function setUrl(string) {
     if (sortBy !== "date") {
         modstring += "sb=" + sortBy + "&";
     }
-    if (orderBy !== "ascending") {
-        modstring += "o=" + "desc" + "&";
+    if (orderBy !== "descending") {
+        modstring += "o=" + "asc" + "&";
     }
     if (filterSong !== false) {
         modstring += "f=" + "song" + "&";
@@ -389,10 +392,10 @@ function clickDateCheckbox() {
     orderDateCheckbox.checked = true;
     orderNameCheckbox.checked = false;
     sortBy = "date";
-    if(orderBy === "ascending") {
+    if(orderBy === "descending") {
         search(searchField.value);
     } else {
-        sortAscCheckbox.click();
+        sortDescCheckbox.click();
     }
 }
 
@@ -538,7 +541,7 @@ function handleUrlArguments() {
         if (o === "asc") {clickSortAscCheckbox()}
         else if (o === "desc") {clickSortDescCheckbox()}
     } else {
-        clickSortAscCheckbox();
+        clickSortDescCheckbox();
     }
 
     if (!isEmpty(s)) {
