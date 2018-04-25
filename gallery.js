@@ -294,12 +294,14 @@ function fillGrid(folders) {
             slideShowGridItems.push(folder);
         }
     };
-    mutator.disconnect();
-    main.removeChild(grid);
-    grid = document.createElement('div');
-    grid.className = "grid";
-    main.insertBefore(grid, loadmore);
-    mutator.observe(grid, {childList: true});
+    if(main.childElementCount !== 0) {
+        mutator.disconnect();
+        main.removeChild(grid);
+        grid = document.createElement('div');
+        grid.className = "grid";
+        main.insertBefore(grid, loadmore);
+        mutator.observe(grid, {childList: true});
+    }
 
     let frag = new DocumentFragment()
     for(e of gridFolders) {
