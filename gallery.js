@@ -13,13 +13,19 @@
 - Prevent slideshow on elements not in view (-500)
 - improve search by searching data
 - light/dark theme
-- fade in elements on initial load.
+- little jump bug after going from 3 results to 3 results
+- optimize metadata.json
+- specific search for grid item
+. optimize image load speed
 */
 
-let itemData = window.itemData; //All folders.
+let itemData = []; //All folders.
 let gridFolders = []; //Visible folders that match the current search.
 let searchFolders = []; //All folders that match the current search.
 let slideShowGridItems = []; //Visible folders that contain multiple images.
+
+let sourceFrag;
+let imgFrag;
 
 let urlParams; // Containing the url search/sort parameters.
 let sortBy = "date" //sorting order
@@ -29,13 +35,15 @@ let filterSong = false; //only display folders with a song download
 const thumbSizes = [{name: "thumbnailMedium", width: 350}, {name: "thumbnailLarge", width: 800}, {name: "downloadUrl", width: 1600}];
 let curr;
 let itemWidth;
-let prevWidth = 0;
-let windowChanged = true;
+let itemHeight;
+let scrollBarWidth = 17;
 
 let searchEnabled = false; //Enables and disables search.
-let pageSize = 100;
+let pageSize = 10;
+let firstPageSize = 1;
 
 let loadmore;
+let loadedMore = false;
 let grid; //Grid element.
 let main; //Main element.
 let orderNameCheckbox;
@@ -63,7 +71,47 @@ function mod(n,m) {
     return ((n % m) + m) % m;
 }
 
+
+
+function createElementTemplate() {
+    let frag = new DocumentFragment();
+
+    frag.appendChild(document.createElement('div'));
+    frag.appendChild(document.createElement('div'));
+    frag.firstElementChild.className = "image-ui-container";
+    frag.lastElementChild.className = "sixteenbynine";
+    let item = frag.lastElementChild;
+    item.appendChild(document.createElement('img'));
+    item.firstElementChild.className = "gallery-image";
+    item = frag.firstElementChild;
+    item.appendChild(document.createElement('div'));
+    item.appendChild(document.createElement('div'));
+    item.firstElementChild.className = "image-bar";
+    item.lastElementChild.className = "image-frame";
+    item = item.firstElementChild;
+    item.appendChild(document.createElement('span'));
+    item.appendChild(document.createElement('span'));
+    item.firstElementChild.className = "image-menubutton";
+    item.lastElementChild.className = "image-title";
+    item = item.firstElementChild;
+    item.appendChild(document.createElement('div'));
+    item.appendChild(document.createElement('div'));
+    item.appendChild(document.createElement('div'));
+
+    return frag;
+}
+
+function createImgTemplate() {
+    let frag = new DocumentFragment();
+
+    frag.appendChild(document.createElement('img'));
+    frag.firstElementChild.className = "gallery-image";
+
+    return frag;
+}
+
 function slideShow() {
+    let urlString = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/";
     for (let i = 0; i < slideShowGridItems.length; i++) {
         let folder = slideShowGridItems[i];
         let images = folder.images;
@@ -75,7 +123,7 @@ function slideShow() {
             e2 = e1;
             e1 = folder.gridItem.lastElementChild.lastElementChild;
         }
-        folder.thumbnailIndex = mod(folder.thumbnailIndex + 1,images.length);
+        folder.thumbnailIndex = mod(folder.thumbnailIndex + 1,Math.min(images.length, 5));
         let index = folder.thumbnailIndex;
 
         if (folder.images[index].dominantColorDark === undefined) {
@@ -86,6 +134,8 @@ function slideShow() {
                 g: dom.g * multiplier,
                 b: dom.b * multiplier
             }
+            folder.images[index].thumbnailMedium = urlString + encodeURIComponent(folder.fullName) + ":/thumbnails/"+ index +"/medium/content";
+            folder.images[index].thumbnailLarge = urlString + encodeURIComponent(folder.fullName) + ":/thumbnails/"+ index +"/large/content";
         }
 
 
@@ -150,29 +200,40 @@ function sort(folders) {
     })
 }
 
-function calcItemWidth() {
-    if (windowChanged === false) {
-        return;
+function calcItemWidth(itemCount) {
+    if (loadedMore && main.style.paddingRight !== "calc(3rem - " + scrollBarWidth + "px)") {
+        main.style.paddingRight = "calc(3rem - " + scrollBarWidth + "px)";
+    } else if (main.style.paddingRight !== "3rem") {
+        main.style.paddingRight = "3rem";
     }
-    windowChanged = true;
-    let windowWidth = document.documentElement.clientWidth + (main.clientWidth - main.offsetWidth);
-    if (gridFolders.length !== 1) {
-        let gridWidth = parseFloat(window.getComputedStyle(grid).getPropertyValue("width"));
-        let maxGridItems = 1;
-        while((maxGridItems * 16 * rem) + (gridWidth * 0.01 * (maxGridItems-1)) < gridWidth) {
-            maxGridItems++;
+    let gridWidth = window.innerWidth - 15*rem - 6*rem;
+    let gridHeight = window.innerHeight - 2.75*rem - 2*rem;
+    if (itemCount !== 1) {
+        let gridItemsPerRow = Math.floor((gridWidth - (16*rem)) / (17*rem)) + 1;
+        let gridItemsFirstRow = Math.min(gridItemsPerRow, folders.length);
+        gridItemsFirstRow = Math.min(gridItemsFirstRow, itemCount);
+        let totalItemWidth = gridWidth - (gridWidth * 0.01 * (gridItemsFirstRow-1));
+        itemWidth = totalItemWidth/gridItemsFirstRow;
+        itemHeight = itemWidth/(16/9);
+        if (itemWidth <= thumbSizes[0].width) {
+            itemHeight += 42;
+        } else {
+            itemHeight += rem;
         }
-        maxGridItems--;
-        maxGridItems = Math.min(maxGridItems, gridFolders.length);
-        let totalItemWidth = gridWidth - (gridWidth * 0.01 * (maxGridItems-1));
-        itemWidth = totalItemWidth/maxGridItems;
+        let gridRowsPerPage = Math.floor((gridHeight - (6*rem)) / itemHeight);
+        firstPageSize = gridRowsPerPage * gridItemsPerRow;
+        pageSize = Math.max(gridRowsPerPage * gridItemsPerRow * 3, 10);
     } else {
-        let padding = parseFloat(window.getComputedStyle(main).getPropertyValue("padding-top"))*2;
-        let fitWidth = (parseFloat(main.offsetHeight) - padding)*(16/9);
-        if (fitWidth > ((windowWidth - (15 * rem)) * 0.93)) {
-            fitWidth = ((windowWidth - (15 * rem)) * 0.93);
+        let fitWidth = (gridHeight - rem)*(16/9);
+        if (fitWidth > gridWidth) {
+            fitWidth = gridWidth;
         }
         itemWidth = fitWidth;
+        itemHeight = (itemWidth/(16/9)) + rem;
+        if (itemWidth <= thumbSizes[0].width) {
+            itemHeight += 42;
+        }
+
     }
 }
 
@@ -215,23 +276,14 @@ function resizeSource() {
 
     }
 
-    console.log(width);
-    console.log(curr.width);
-    console.log(prevWidth);
-
     for (folder of gridFolders) {
-        if (prevWidth != itemWidth) {
+        if (folder.gridItem.style.width !== itemWidth) {
             folder.gridItem.style.width = itemWidth + "px";
         }
-        if (width > thumbSizes[0].width) {
-            if (prevWidth != itemWidth) {
-                folder.gridItem.style.height = itemWidth/(16/9) + "px";
-            }
-        } else {
-            if (prevWidth != itemWidth) {
-                folder.gridItem.style.height = ((itemWidth/(16/9)) + 42) + "px";
-            }
+        if (folder.gridItem.style.height !== itemHeight) {
+            folder.gridItem.style.height = itemHeight + "px";
         }
+
         if (folder.images.length === 1) {
             if (folder.gridItem.lastElementChild.firstElementChild.src !== folder.images[0][curr.name]) {
                 folder.gridItem.lastElementChild.firstElementChild.src = folder.images[0][curr.name];
@@ -240,7 +292,6 @@ function resizeSource() {
             folder.gridItem.lastElementChild.firstElementChild.src = folder.images[folder.thumbnailIndex][curr.name];
         }
     }
-    prevWidth = itemWidth;
 }
 
 function loadMore() {
@@ -256,38 +307,41 @@ function loadMore() {
 
         if (searchFolders[i].images.length > 1) {
             slideShowGridItems.push(searchFolders[i]);
-            console.log(searchFolders[i].name);
         }
 
     }
-
     let frag = new DocumentFragment()
     for(e of moreFolders) {
         frag.appendChild(e.gridItem);
+    }
+
+    if (loadedMore === false) {
+        loadedMore = true;
+        calcItemWidth(gridFolders.length);
     }
     resizeSource();
     grid.appendChild(frag);
 }
 
 function fillGrid(folders) {
+    loadedMore = false;
     sort(folders);
     if (gridFolders.length === 1) {
         for (let f of gridFolders) {
-            f.gridItem.style.width = null;
             f.gridItem.style.marginLeft = null;
         }
     }
 
     searchFolders = folders;
     gridFolders = [];
+    calcItemWidth(folders.length);
     for (folder of folders) {
-        if (gridFolders.length === pageSize) {
+        if (gridFolders.length === firstPageSize) {
             break;
         }
         gridFolders.push(folder);
     }
 
-    calcItemWidth(folders.length);
     slideShowGridItems = [];
     for (let folder of gridFolders) {
         if (folder.images.length > 1) {
@@ -316,7 +370,6 @@ function fillGrid(folders) {
         loadmore.style.display = "none";
     }
     if (gridFolders.length === 1) {
-        gridFolders[0].gridItem.style.width = itemWidth + "px";
         let widthDiff = parseFloat(grid.offsetWidth) - itemWidth;
         gridFolders[0].gridItem.style.marginLeft = (widthDiff/2) + "px";
     }
@@ -436,22 +489,19 @@ function setupHooks() {
     grid = main.firstElementChild;
     loadmore = main.lastElementChild;
     window.onresize = function() {
-        windowChanged = true;
         rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-        calcItemWidth();
+        calcItemWidth(gridFolders.length);
         if (gridFolders.length === 1) {
             for (let f of gridFolders) {
-                f.gridItem.style.width = null;
                 f.gridItem.style.marginLeft = null;
             }
-            gridFolders[0].gridItem.style.width = itemWidth + "px";
             let widthDiff = parseFloat(grid.offsetWidth) - itemWidth;
             gridFolders[0].gridItem.style.marginLeft = (widthDiff/2) + "px";;
         }
         resizeSource();
     };
 
-    loadmore.onclick = function() {
+    loadmore.firstElementChild.firstElementChild.onclick = function() {
         loadMore();
     }
 
@@ -477,10 +527,15 @@ function setupHooks() {
                 gridItem.lastElementChild.firstElementChild.onload = function() {
                     gridItem.lastElementChild.firstElementChild.style.opacity = 1;
                     gridItem.lastElementChild.firstElementChild.onload = null;
+                    gridItem.lastElementChild.firstElementChild.onerror = null;
                     let rgb = getRGB(gridItem.data.images[0].dominantColorDark);
                     gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
                     gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
                 }
+                gridItem.lastElementChild.firstElementChild.onerror = function() {
+                    gridItem.lastElementChild.firstElementChild.style.opacity = 1;
+                    gridItem.lastElementChild.firstElementChild.onload = null;
+                    gridItem.lastElementChild.firstElementChild.onerror = null;                }
             }
 
         });
@@ -551,11 +606,58 @@ function handleUrlArguments() {
     }
 }
 
+function storeData(data) {
+    let sourceFrag = createElementTemplate();
+    let imgFrag = createImgTemplate();
+    let urlString = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/";
+
+    for (let folder of data) {
+        let gridItem = sourceFrag.cloneNode(true);
+        gridItem.firstElementChild.firstElementChild.lastElementChild.textContent = folder.name;
+        let dom = folder.images[0].dominantColor;
+        let multiplier = 96/(dom.r+dom.g+dom.b);
+        folder.images[0].dominantColorDark = {
+            r: dom.r * multiplier,
+            g: dom.g * multiplier,
+            b: dom.b * multiplier
+        }
+        folder.fullName = folder.name;
+        if (folder.suffix !== undefined) {
+            folder.fullName += " - " + folder.suffix;
+        }
+        folder.images[0].thumbnailMedium = urlString + encodeURIComponent(folder.fullName) + ":/thumbnails/0/medium/content";
+        folder.images[0].thumbnailLarge = urlString + encodeURIComponent(folder.fullName) + ":/thumbnails/0/large/content";
+
+        if (folder.images.length != 1) {
+            folder.thumbnailIndex = 0;
+            gridItem.lastElementChild.appendChild(imgFrag.cloneNode(true));
+        }
+
+        folder.gridItem = document.createElement('div');
+        folder.gridItem.className = "grid-item";
+        folder.gridItem.appendChild(gridItem);
+        folder.gridItem.data = folder;
+        itemData.push(folder);
+    }
+}
+
+function getScrollBarWidth() {
+    let scrollDiv = document.createElement('div');
+    scrollDiv.className = "scrollbar-measure";
+    document.body.appendChild(scrollDiv);
+
+    scrollBarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
+    document.body.removeChild(scrollDiv);
+}
+
 async function galleryInit() {
     setupHooks();
     handleUrlArguments();
     setInterval(slideShow, 7000);
+    getScrollBarWidth();
     await window.preload;
+    storeData(window.folders);
+    document.getElementById("spinner").remove();
     searchEnabled = true;
     let s = getUrlParams("s");
     if (!isEmpty(s)) {

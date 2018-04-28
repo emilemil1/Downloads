@@ -2,9 +2,20 @@
 <html>
 <head>
     <title>Image Gallery</title>
-    <script type="text/javascript" src="preloader.js"></script>
+    <script>
+        //Fetch manifest
+        window.preload = new Promise(function(resolve) {
+            let request = new XMLHttpRequest();
+            request.onload = (function(data) {
+                window.folders = JSON.parse(data.target.response).folders;
+                resolve("loaded");
+            });
+            request.open("get", "metadata.json", true);
+            request.send();
+        })
+    </script>
     <link rel="stylesheet" type="text/css" href="gallery.css">
-    <script type="text/javascript" src="gallery.js"></script>
+    <script type="text/javascript" src="gallery.js" defer></script>
 </head>
 <body>
     <div class="corner"></div>
@@ -47,11 +58,19 @@
     </div>
     <div class="main">
         <div class="grid"></div>
+        <div class="spinnerContainer" id="spinner">
+            <div class="spinner">
+                <div class="cube1"></div>
+                <div class="cube2"></div>
+            </div>
+        </div>
         <div id="loadmore" class="loadmore">
             <div id="loadmore2" class="custom-checkbox">
                 <button id="loadmore-indicator" class="custom-checkbox-indicator">Show More Results</button>
             </div>
         </div>
+    </div>
+    <div class="preloadImgs" style="display:none">
     </div>
 </body>
 </html>
