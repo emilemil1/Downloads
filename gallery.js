@@ -17,6 +17,8 @@
 - optimize metadata.json
 - specific search for grid item
 . optimize image load speed
+- store thumbnail url in metadata.json
+- migrate to imgur gallery
 */
 
 let itemData = []; //All folders.
@@ -32,7 +34,7 @@ let sortBy = "date" //sorting order
 let orderBy = "descending" //sorting order
 let filterSong = false; //only display folders with a song download
 
-const thumbSizes = [{name: "thumbnailMedium", width: 350}, {name: "thumbnailLarge", width: 800}, {name: "downloadUrl", width: 1600}];
+const thumbSizes = [{name: "downloadMedium", width: 350}, {name: "downloadLarge", width: 800}, {name: "downloadUrl", width: 1600}];
 let curr;
 let itemWidth;
 let itemHeight;
@@ -117,7 +119,7 @@ function slideShow() {
         let images = folder.images;
         let e1 = folder.gridItem.lastElementChild.firstElementChild;
         let e2;
-        if (e1.src === images[folder.thumbnailIndex][curr.name]) {
+        if (e1.style.opacity === "1") {
             e2 = folder.gridItem.lastElementChild.lastElementChild;
         } else {
             e2 = e1;
@@ -128,44 +130,36 @@ function slideShow() {
 
         if (folder.images[index].dominantColorDark === undefined) {
             let dom = folder.images[index].dominantColor;
-            let multiplier = 96/(dom.r+dom.g+dom.b)
+            let multiplier = 96/(dom.r+dom.g+dom.b);
             folder.images[index].dominantColorDark = {
                 r: dom.r * multiplier,
                 g: dom.g * multiplier,
                 b: dom.b * multiplier
             }
-            folder.images[index].thumbnailMedium = urlString + encodeURIComponent(folder.fullName) + ":/thumbnails/"+ index +"/medium/content";
-            folder.images[index].thumbnailLarge = urlString + encodeURIComponent(folder.fullName) + ":/thumbnails/"+ index +"/large/content";
+            if (folder.images[index].name === "8. Let's Get Mad.jpg") {
+                console.log(folder.images[index].dominantColorDark);
+            }
         }
 
 
         let rgb = getRGB(images[index].dominantColorDark);
         e2.src = folder.images[index][curr.name];
-        if (e1.complete && e2.complete) {
-            e1.style.opacity = "0";
-            e2.style.opacity = "1";
+        if (e2.complete) {
+            e1.style.opacity = 0;
+            e2.style.opacity = 1;
             folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
             folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
             continue;
-        }
-
-        e1.onload = function() {
-            if (e2.complete) {
-                e1.style.opacity = "0";
-                e2.style.opacity = "1";
+        } else {
+            e2.onload = function() {
+                e2.onload = undefined;
+                e1.style.opacity = 0;
+                e2.style.opacity = 1;
                 folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
                 folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
             }
         }
 
-        e2.onload = function() {
-            if (e1.complete) {
-                e1.style.opacity = "0";
-                e2.style.opacity = "1";
-                folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
-                folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
-            }
-        }
     }
 }
 
@@ -290,6 +284,7 @@ function resizeSource() {
             }
         } else {
             folder.gridItem.lastElementChild.firstElementChild.src = folder.images[folder.thumbnailIndex][curr.name];
+            folder.gridItem.lastElementChild.lastElementChild.style.opacity = "0";
         }
     }
 }
@@ -609,7 +604,6 @@ function handleUrlArguments() {
 function storeData(data) {
     let sourceFrag = createElementTemplate();
     let imgFrag = createImgTemplate();
-    let urlString = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/";
 
     for (let folder of data) {
         let gridItem = sourceFrag.cloneNode(true);
@@ -625,8 +619,6 @@ function storeData(data) {
         if (folder.suffix !== undefined) {
             folder.fullName += " - " + folder.suffix;
         }
-        folder.images[0].thumbnailMedium = urlString + encodeURIComponent(folder.fullName) + ":/thumbnails/0/medium/content";
-        folder.images[0].thumbnailLarge = urlString + encodeURIComponent(folder.fullName) + ":/thumbnails/0/large/content";
 
         if (folder.images.length != 1) {
             folder.thumbnailIndex = 0;
