@@ -17,8 +17,8 @@
 - optimize metadata.json
 - specific search for grid item
 . optimize image load speed
-- store thumbnail url in metadata.json
 - use imgur as first-stage
+- do not fade in images that are immediately available
 */
 
 let itemData = []; //All folders.
