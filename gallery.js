@@ -18,7 +18,7 @@
 - specific search for grid item
 . optimize image load speed
 - store thumbnail url in metadata.json
-- migrate to imgur gallery
+- use imgur as first-stage
 */
 
 let itemData = []; //All folders.
