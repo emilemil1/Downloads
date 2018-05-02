@@ -9,16 +9,12 @@
 - Favicon
 - Support for more hosting services
 - Mobile UI
-- Remove src from elements far from view (-2000)
 - Prevent slideshow on elements not in view (-500)
 - improve search by searching data
 - light/dark theme
-- little jump bug after going from 3 results to 3 results
-- optimize metadata.json
 - specific search for grid item
-. optimize image load speed
-- use imgur as first-stage
-- do not fade in images that are immediately available
+- use imgur as first-stage (uploads remaining)
+- minify everything
 */
 
 let itemData = []; //All folders.
@@ -34,7 +30,7 @@ let sortBy = "date" //sorting order
 let orderBy = "descending" //sorting order
 let filterSong = false; //only display folders with a song download
 
-const thumbSizes = [{name: "downloadMedium", width: 350}, {name: "downloadLarge", width: 800}, {name: "downloadUrl", width: 1600}];
+const thumbSizes = [{name: "m", width: 350, backup: "downloadMedium"}, {name: "l", width: 800, backup: "downloadLarge"}, {name: "", width: 1600, backup: "downloadUrl"}];
 let curr;
 let itemWidth;
 let itemHeight;
@@ -54,7 +50,6 @@ let orderDateCheckbox;
 let sortAscCheckbox;
 let sortDescCheckbox;
 let filterSongDownload;
-let mutator;
 let scrollPos;
 
 let rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -72,8 +67,6 @@ function isEmpty(obj) {
 function mod(n,m) {
     return ((n % m) + m) % m;
 }
-
-
 
 function createElementTemplate() {
     let frag = new DocumentFragment();
@@ -112,6 +105,27 @@ function createImgTemplate() {
     return frag;
 }
 
+function imgonerror(event) {
+    let e = event.currentTarget;
+    let folder = e.parentElement.parentElement.data;
+    if (e.src !== folder.images[folder.thumbnailIndex][curr.backup]) {
+        e.src = folder.images[folder.thumbnailIndex][curr.backup];
+    }
+}
+
+function imgonload(event) {
+    let e = event.currentTarget;
+    let folder = e.parentElement.parentElement.data;
+    if (e.shadow !== undefined) {
+        e.shadow.style.opacity = 0;
+        e.shadow = undefined;
+    }
+    e.style.opacity = 1;
+    let rgb = getRGB(folder.images[folder.thumbnailIndex].dominantColorDark);
+    folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
+    folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
+}
+
 function slideShow() {
     let urlString = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/";
     for (let i = 0; i < slideShowGridItems.length; i++) {
@@ -136,30 +150,14 @@ function slideShow() {
                 g: dom.g * multiplier,
                 b: dom.b * multiplier
             }
-            if (folder.images[index].name === "8. Let's Get Mad.jpg") {
-                console.log(folder.images[index].dominantColorDark);
-            }
         }
 
-
-        let rgb = getRGB(images[index].dominantColorDark);
-        e2.src = folder.images[index][curr.name];
-        if (e2.complete) {
-            e1.style.opacity = 0;
-            e2.style.opacity = 1;
-            folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
-            folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
-            continue;
+        e2.shadow = e1;
+        if (folder.images[index].imgurId !== undefined) {
+            e2.src = "https://i.imgur.com/" + folder.images[index].imgurId + curr.name + ".jpg";
         } else {
-            e2.onload = function() {
-                e2.onload = undefined;
-                e1.style.opacity = 0;
-                e2.style.opacity = 1;
-                folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
-                folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
-            }
+            e2.src = folder.images[index][curr.backup];
         }
-
     }
 }
 
@@ -197,7 +195,7 @@ function sort(folders) {
 function calcItemWidth(itemCount) {
     if (loadedMore && main.style.paddingRight !== "calc(3rem - " + scrollBarWidth + "px)") {
         main.style.paddingRight = "calc(3rem - " + scrollBarWidth + "px)";
-    } else if (main.style.paddingRight !== "3rem") {
+    } else if (!loadedMore && main.style.paddingRight !== "3rem") {
         main.style.paddingRight = "3rem";
     }
     let gridWidth = window.innerWidth - 15*rem - 6*rem;
@@ -214,7 +212,7 @@ function calcItemWidth(itemCount) {
         } else {
             itemHeight += rem;
         }
-        let gridRowsPerPage = Math.floor((gridHeight - (6*rem)) / itemHeight);
+        let gridRowsPerPage = Math.max(Math.floor((gridHeight - (6*rem)) / itemHeight), 1);
         firstPageSize = gridRowsPerPage * gridItemsPerRow;
         pageSize = Math.max(gridRowsPerPage * gridItemsPerRow * 3, 10);
     } else {
@@ -277,14 +275,21 @@ function resizeSource() {
         if (folder.gridItem.style.height !== itemHeight) {
             folder.gridItem.style.height = itemHeight + "px";
         }
-
-        if (folder.images.length === 1) {
-            if (folder.gridItem.lastElementChild.firstElementChild.src !== folder.images[0][curr.name]) {
-                folder.gridItem.lastElementChild.firstElementChild.src = folder.images[0][curr.name];
-            }
+        if (folder.images[folder.thumbnailIndex].imgurId !== undefined) {
+            imgurl = "https://i.imgur.com/" + folder.images[folder.thumbnailIndex].imgurId + curr.name + ".jpg";
         } else {
-            folder.gridItem.lastElementChild.firstElementChild.src = folder.images[folder.thumbnailIndex][curr.name];
-            folder.gridItem.lastElementChild.lastElementChild.style.opacity = "0";
+            imgurl = folder.images[folder.thumbnailIndex][curr.backup];
+        }
+
+        if (folder.rgbset === false) {
+            let rgb = getRGB(folder.images[0].dominantColorDark);
+            folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
+            folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
+            folder.gridItem.lastElementChild.style.backgroundColor = rgb;
+        }
+
+        if (folder.gridItem.lastElementChild.firstElementChild.src === "") {
+            folder.gridItem.lastElementChild.firstElementChild.src = imgurl;
         }
     }
 }
@@ -314,8 +319,8 @@ function loadMore() {
         loadedMore = true;
         calcItemWidth(gridFolders.length);
     }
-    resizeSource();
     grid.appendChild(frag);
+    requestAnimationFrame(resizeSource);
 }
 
 function fillGrid(folders) {
@@ -344,20 +349,18 @@ function fillGrid(folders) {
         }
     };
     if(main.childElementCount !== 0) {
-        mutator.disconnect();
         main.removeChild(grid);
         grid = document.createElement('div');
         grid.className = "grid";
         main.insertBefore(grid, loadmore);
-        mutator.observe(grid, {childList: true});
     }
 
     let frag = new DocumentFragment()
     for(e of gridFolders) {
         frag.appendChild(e.gridItem);
     }
-    resizeSource();
     grid.appendChild(frag);
+    requestAnimationFrame(resizeSource);
 
     if (gridFolders < searchFolders) {
         loadmore.style.display = "grid";
@@ -509,34 +512,6 @@ function setupHooks() {
     sortAscCheckbox.onchange = clickSortAscCheckbox;
     sortDescCheckbox.onchange = clickSortDescCheckbox;
     filterSongDownload.onchange = clickFilterSongDownloadCheckbox;
-
-    mutator = new MutationObserver(function (record) {
-        record[0].addedNodes.forEach(function(gridItem) {
-            if (gridItem.lastElementChild.firstElementChild.completed) {
-                gridItem.lastElementChild.firstElementChild.style.opacity = 1;
-                let rgb = getRGB(folder.images[0].dominantColorDark);
-                gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
-                gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
-
-            } else {
-                gridItem.lastElementChild.firstElementChild.onload = function() {
-                    gridItem.lastElementChild.firstElementChild.style.opacity = 1;
-                    gridItem.lastElementChild.firstElementChild.onload = null;
-                    gridItem.lastElementChild.firstElementChild.onerror = null;
-                    let rgb = getRGB(gridItem.data.images[0].dominantColorDark);
-                    gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
-                    gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
-                }
-                gridItem.lastElementChild.firstElementChild.onerror = function() {
-                    gridItem.lastElementChild.firstElementChild.style.opacity = 1;
-                    gridItem.lastElementChild.firstElementChild.onload = null;
-                    gridItem.lastElementChild.firstElementChild.onerror = null;                }
-            }
-
-        });
-    });
-
-    mutator.observe(grid, {childList: true});
 }
 
 function getRGB(obj) {
@@ -607,6 +582,8 @@ function storeData(data) {
 
     for (let folder of data) {
         let gridItem = sourceFrag.cloneNode(true);
+        gridItem.lastElementChild.lastElementChild.onload = imgonload;
+        gridItem.lastElementChild.lastElementChild.onerror = imgonerror;
         gridItem.firstElementChild.firstElementChild.lastElementChild.textContent = folder.name;
         let dom = folder.images[0].dominantColor;
         let multiplier = 96/(dom.r+dom.g+dom.b);
@@ -620,15 +597,18 @@ function storeData(data) {
             folder.fullName += " - " + folder.suffix;
         }
 
+        folder.thumbnailIndex = 0;
         if (folder.images.length != 1) {
-            folder.thumbnailIndex = 0;
             gridItem.lastElementChild.appendChild(imgFrag.cloneNode(true));
+            gridItem.lastElementChild.lastElementChild.onload = imgonload;
+            gridItem.lastElementChild.lastElementChild.onerror = imgonerror;
         }
 
         folder.gridItem = document.createElement('div');
         folder.gridItem.className = "grid-item";
         folder.gridItem.appendChild(gridItem);
         folder.gridItem.data = folder;
+        folder.rgbset = false;
         itemData.push(folder);
     }
 }
@@ -640,6 +620,9 @@ function getScrollBarWidth() {
 
     scrollBarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
     document.body.removeChild(scrollDiv);
+    if (scrollBarWidth === 0) {
+        scrollBarWidth = 17;
+    }
 }
 
 async function galleryInit() {

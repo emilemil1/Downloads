@@ -188,6 +188,7 @@ body {
     padding-top: calc(100% * 0.5625);
     margin: 0.5rem;
     background-color: rgb(32,32,32);
+    transition: background-color 3s;
 }
 
 .sixteenbynine.reduced {
