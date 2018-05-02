@@ -30,7 +30,7 @@ let sortBy = "date" //sorting order
 let orderBy = "descending" //sorting order
 let filterSong = false; //only display folders with a song download
 
-const thumbSizes = [{name: "m", width: 350, backup: "downloadMedium"}, {name: "l", width: 800, backup: "downloadLarge"}, {name: "", width: 1600, backup: "downloadUrl"}];
+const thumbSizes = [{name: "m", width: 320, backup: "downloadMedium"}, {name: "l", width: 640, backup: "downloadLarge"}, {name: "", width: 1600, backup: "downloadUrl"}];
 let curr;
 let itemWidth;
 let itemHeight;
