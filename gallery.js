@@ -15,6 +15,7 @@
 - specific search for grid item
 - use imgur as first-stage (uploads remaining)
 - minify everything
+- fix jank
 */
 
 let itemData = []; //All folders.
@@ -44,6 +45,7 @@ let loadmore;
 let loadedMore = false;
 let grid; //Grid element.
 let main; //Main element.
+let explorerBox;
 let orderNameCheckbox;
 let searchField;
 let orderDateCheckbox;
@@ -192,6 +194,8 @@ function calcItemWidth(itemCount) {
     } else if (!loadedMore && main.style.paddingRight !== "3rem") {
         main.style.paddingRight = "3rem";
     }
+
+
     let gridWidth = window.innerWidth - 15*rem - 6*rem;
     let gridHeight = window.innerHeight - 2.75*rem - 2*rem;
     if (itemCount !== 1) {
@@ -478,11 +482,13 @@ function setupHooks() {
     sortDescCheckbox = document.getElementById("sort-desc");
     filterSongDownload = document.getElementById("filter-song-download");
 
+    explorerBox = document.getElementsByClassName("explorer-box")[0];
     grid = main.firstElementChild;
     loadmore = main.lastElementChild;
     window.onresize = function() {
         rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
         calcItemWidth(gridFolders.length);
+        calcViewer();
         if (gridFolders.length === 1) {
             for (let f of gridFolders) {
                 f.gridItem.style.marginLeft = null;
@@ -570,6 +576,42 @@ function handleUrlArguments() {
     }
 }
 
+function calcViewer() {
+    if (parseFloat(explorerBox.offsetHeight) <= explorerBox.parentNode.offsetHeight) {
+        if (parseFloat(explorerBox.style.height) * rem > explorerBox.parentNode.offsetHeight) {
+            requestAnimationFrame(monitorViewerScrollbarAdd);
+        } else {
+            requestAnimationFrame(monitorViewerScrollbarRemove);
+        }
+    } else {
+        if (parseFloat(explorerBox.style.height) * rem <= explorerBox.parentNode.offsetHeight) {
+            requestAnimationFrame(monitorViewerScrollbarRemove);
+        } else {
+            requestAnimationFrame(monitorViewerScrollbarAdd);
+        }
+    }
+}
+
+function monitorViewerScrollbarAdd() {
+    if (explorerBox.offsetHeight > explorerBox.parentNode.offsetHeight) {
+        if (explorerBox.parentNode.style.paddingRight !== "0px") {
+            explorerBox.parentNode.style.paddingRight = "0px";
+        }
+    } else {
+        requestAnimationFrame(monitorViewerScrollbarAdd);
+    }
+}
+
+function monitorViewerScrollbarRemove() {
+    if (explorerBox.offsetHeight <= explorerBox.parentNode.offsetHeight) {
+        if (explorerBox.parentNode.style.paddingRight !== "0.5rem") {
+            explorerBox.parentNode.style.paddingRight = "0.5rem";
+        }
+    } else {
+        requestAnimationFrame(monitorViewerScrollbarRemove);
+    }
+}
+
 function storeData(data) {
     let sourceFrag = createElementTemplate();
     let imgFrag = createImgTemplate();
@@ -615,7 +657,11 @@ function getScrollBarWidth() {
     scrollBarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
     document.body.removeChild(scrollDiv);
     if (scrollBarWidth === 0) {
-        scrollBarWidth = 17;
+        if ('WebkitAppearance' in document.documentElement.style) {
+            scrollBarWidth = 8;
+        } else {
+            scrollBarWidth = 17;
+        }
     }
 }
 
