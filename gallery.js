@@ -85,13 +85,7 @@ function createElementTemplate() {
     item.lastElementChild.className = "image-frame";
     item = item.firstElementChild;
     item.appendChild(document.createElement('span'));
-    item.appendChild(document.createElement('span'));
-    item.firstElementChild.className = "image-menubutton";
     item.lastElementChild.className = "image-title";
-    item = item.firstElementChild;
-    item.appendChild(document.createElement('div'));
-    item.appendChild(document.createElement('div'));
-    item.appendChild(document.createElement('div'));
 
     return frag;
 }
@@ -377,7 +371,7 @@ function searchItem(item, string) {
     if (!item.name.toLowerCase().includes(string.toLowerCase())) {
         return false;
     }
-    if (filterSong === true && item.files.length === 0) {
+    if (filterSong === true && item.files === undefined) {
         return false;
     }
 

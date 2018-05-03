@@ -31,7 +31,7 @@ body {
     background-color: rgb(56,56,56);
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-auto-rows: min-content;
+    grid-template-rows: min-content min-content min-content 1fr min-content;
     padding-left: 2%;
     padding-right: 2%;
     box-shadow: 0.1rem 0 0.4rem 0 rgb(0,0,0,0.32);
@@ -146,7 +146,7 @@ body {
 
 .custom-checkbox-hidden:checked ~ .custom-checkbox-indicator {
     background-color: rgb(80,80,80);
-    box-shadow: inset 0 0.1rem 0.1rem 0 rgb(0,0,0,0.16), 0 0 0 0.05rem rgb(0,0,0,0.08);
+    box-shadow: inset 0 0.1rem 0.1rem 0 rgb(0,0,0,0.16), inset 0 0 0 0.05rem rgb(0,0,0,0.08);
     color: rgb(220,220,220);
 }
 
@@ -217,24 +217,6 @@ body {
     position:relative;
 }
 
-.image-menubutton {
-    content: "";
-    width: 1.125rem;
-    display: grid;
-    grid-template-rows: 1fr 1fr 1fr;
-    grid-gap: 0.1875rem;
-    height: fit-content;
-    align-self: center;
-    justify-self: center;
-}
-
-.image-menubutton div {
-    background-color: white;
-    height: 0.125rem;
-    align-self: center;
-
-}
-
 .image-ui-container {
     position:absolute;
     top:0;
@@ -256,13 +238,13 @@ body {
     top:0;
     left:0;
     display: grid;
-    grid-template-columns: auto auto 1fr;
+    grid-template-columns: auto 1fr;
     grid-template-rows: auto 1fr;
     color: rgb(220,220,220);
     background-color: rgb(32,32,32);
     padding-top: 0.75rem;
     padding-bottom: 0.75rem;
-    padding-left: 1rem;
+    padding-left: 0.75rem;
     padding-right: 2.5rem;
     transition: background-color 2s;
     clip-path: polygon(0 0, 100% 0, calc(100% - 2rem) 100%, 0 100%);
@@ -270,7 +252,7 @@ body {
 
 .image-bar.reduced {
         width: calc(100% - 2rem);
-        padding-right: 1rem;
+        padding-right: 0.75rem;
         clip-path: initial;
         position: relative;
     }
@@ -301,8 +283,7 @@ body {
     font-size: 1rem;
     align-self: center;
     justify-self: center;
-    margin-left: 1rem;
-    max-width: calc(100% - 1rem);
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -429,4 +410,43 @@ img:after {
     width: 100%;
     height: 100%;
     background-color: rgb(32,32,32);
+}
+
+.explorer {
+    margin-top: 1.5rem;
+    color: rgb(200,200,200, 0.9);
+    display: grid;
+    grid-template-rows: min-content 1fr;
+    grid-column: 1 / -1;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+}
+
+.explorer-title {
+    margin-right: 0.25rem;
+    margin-bottom: 0.5rem;
+    margin-left: 0.25rem;
+}
+
+.explorer-box {
+    box-shadow: inset 0 0.1rem 0.4rem 0 rgb(0,0,0,0.32), inset 0 0 0 0.05rem rgb(0,0,0,0.08);
+    background-color: rgb(19,19,19);
+}
+
+.explorer-box-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 1rem;
+    color: rgb(220,220,220, 0.6);
+}
+
+.cred {
+    grid-column: 1 / -1;
+    color: rgb(220,220,220, 0.3);
+    margin-top: 0.8rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
