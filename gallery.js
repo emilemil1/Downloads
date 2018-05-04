@@ -105,6 +105,7 @@ function imgonerror(event) {
     let e = event.currentTarget;
     let folder = e.parentElement.parentElement.data;
     if (e.src !== folder.images[folder.thumbnailIndex][curr.backup]) {
+        console.log(folder.name + " imgur error");
         e.src = folder.images[folder.thumbnailIndex][curr.backup];
     }
 }

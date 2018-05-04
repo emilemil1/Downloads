@@ -429,6 +429,7 @@ img:after {
 
 .explorer-scrollview {
     overflow: auto;
+    height: calc(100vh - 23.15rem);
     max-height: calc(100vh - 22.1rem);
     padding-right: 0.5rem;
 }
@@ -458,12 +459,20 @@ img:after {
     color: rgb(220,220,220, 0.6);
 }
 
+.cred-divider {
+    height: 0.05rem;
+    margin-bottom: 1rem;
+    width: calc(100% - 2rem);
+    background-color: rgb(220,220,220,0.3);
+}
+
 .cred {
     grid-column: 1 / -1;
     color: rgb(220,220,220, 0.3);
     margin-top: 0.8rem;
     margin-bottom: 1rem;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 }
