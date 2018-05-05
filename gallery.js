@@ -287,7 +287,7 @@ function resizeSource() {
             folder.gridItem.lastElementChild.style.backgroundColor = rgb;
         }
 
-        if (folder.gridItem.lastElementChild.firstElementChild.src === "") {
+        if (folder.gridItem.lastElementChild.firstElementChild.src !== imgurl) {
             folder.gridItem.lastElementChild.firstElementChild.src = imgurl;
         }
     }
