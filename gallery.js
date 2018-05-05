@@ -16,6 +16,7 @@
 - use imgur as first-stage (uploads remaining)
 - minify everything
 - fix jank
+- smooth load images when changing resolution
 */
 
 let itemData = []; //All folders.
