@@ -72,32 +72,32 @@ function mod(n,m) {
 }
 
 function createElementTemplate() {
-    let frag = new DocumentFragment();
+    let frag = document.createDocumentFragment();
 
     frag.appendChild(document.createElement('div'));
     frag.appendChild(document.createElement('div'));
-    frag.firstElementChild.className = "image-ui-container";
-    frag.lastElementChild.className = "sixteenbynine";
-    let item = frag.lastElementChild;
+    frag.childNodes[0].className = "image-ui-container";
+    frag.childNodes[1].className = "sixteenbynine";
+    let item = frag.childNodes[1];
     item.appendChild(document.createElement('img'));
-    item.firstElementChild.className = "gallery-image";
-    item = frag.firstElementChild;
+    item.childNodes[0].className = "gallery-image";
+    item = frag.childNodes[0];
     item.appendChild(document.createElement('div'));
     item.appendChild(document.createElement('div'));
-    item.firstElementChild.className = "image-bar";
-    item.lastElementChild.className = "image-frame";
-    item = item.firstElementChild;
+    item.childNodes[0].className = "image-bar";
+    item.childNodes[1].className = "image-frame";
+    item = item.childNodes[0];
     item.appendChild(document.createElement('span'));
-    item.lastElementChild.className = "image-title";
+    item.childNodes[0].className = "image-title";
 
     return frag;
 }
 
 function createImgTemplate() {
-    let frag = new DocumentFragment();
+    let frag = document.createDocumentFragment();
 
     frag.appendChild(document.createElement('img'));
-    frag.firstElementChild.className = "gallery-image";
+    frag.childNodes[0].className = "gallery-image";
 
     return frag;
 }
@@ -204,7 +204,7 @@ function calcItemWidth(itemCount) {
         let gridItemsPerRow = Math.floor((gridWidth - (16*rem)) / (17*rem)) + 1;
         let gridItemsFirstRow = Math.min(gridItemsPerRow, folders.length);
         gridItemsFirstRow = Math.min(gridItemsFirstRow, itemCount);
-        let totalItemWidth = gridWidth - (gridWidth * 0.01 * (gridItemsFirstRow-1));
+        let totalItemWidth = gridWidth - (1 * rem * (gridItemsFirstRow-1));
         itemWidth = totalItemWidth/gridItemsFirstRow;
         itemHeight = itemWidth/(16/9);
         if (itemWidth <= thumbSizes[0].width) {
@@ -310,7 +310,7 @@ function loadMore() {
         }
 
     }
-    let frag = new DocumentFragment()
+    let frag = document.createDocumentFragment();
     for(e of moreFolders) {
         frag.appendChild(e.gridItem);
     }
@@ -355,7 +355,7 @@ function fillGrid(folders) {
         main.insertBefore(grid, loadmore);
     }
 
-    let frag = new DocumentFragment()
+    let frag = document.createDocumentFragment();
     for(e of gridFolders) {
         frag.appendChild(e.gridItem);
     }
@@ -503,10 +503,14 @@ function setupHooks() {
     };
 
     loadmore.firstElementChild.firstElementChild.onclick = function() {
+        let scrollSave = main.scrollTop;
         loadMore();
+        requestAnimationFrame(function() {
+            main.scrollTop = scrollSave;
+        });
     }
 
-    searchField.oninput = function() {
+    searchField.oninput = function(e) {
         search(searchField.value);
     }
 
@@ -620,11 +624,13 @@ function storeData(data) {
 
     for (let folder of data) {
         let gridItem = sourceFrag.cloneNode(true);
-        gridItem.lastElementChild.lastElementChild.onload = imgonload;
-        gridItem.lastElementChild.lastElementChild.onerror = imgonerror;
-        gridItem.firstElementChild.firstElementChild.lastElementChild.textContent = folder.name;
+
+        gridItem.childNodes[1].childNodes[0].onload = imgonload;
+        gridItem.childNodes[1].childNodes[0].onerror = imgonerror;
+        gridItem.childNodes[0].childNodes[0].childNodes[0].textContent = folder.name;
         let dom = folder.images[0].dominantColor;
         let multiplier = 96/(dom.r+dom.g+dom.b);
+
         folder.images[0].dominantColorDark = {
             r: dom.r * multiplier,
             g: dom.g * multiplier,
@@ -637,9 +643,9 @@ function storeData(data) {
 
         folder.thumbnailIndex = 0;
         if (folder.images.length != 1) {
-            gridItem.lastElementChild.appendChild(imgFrag.cloneNode(true));
-            gridItem.lastElementChild.lastElementChild.onload = imgonload;
-            gridItem.lastElementChild.lastElementChild.onerror = imgonerror;
+            gridItem.childNodes[1].appendChild(imgFrag.cloneNode(true));
+            gridItem.childNodes[1].childNodes[gridItem.childNodes.length-1].onload = imgonload;
+            gridItem.childNodes[1].childNodes[gridItem.childNodes.length-1].onerror = imgonerror;
         }
 
         folder.gridItem = document.createElement('div');

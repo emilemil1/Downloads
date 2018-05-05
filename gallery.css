@@ -23,14 +23,15 @@ body {
     grid-area: head;
     z-index: 1;
     background-color: rgb(44,44,44);
-    box-shadow: 0 0.1vw 0.4vw 0 rgb(0,0,0,0.32);
+    box-shadow: 0 0.1vw 0.4vw 0 rgba(0,0,0,0.32);
 }
 .sidebar {
     grid-area: side;
     z-index: 1;
     background-color: rgb(56,56,56);
     overflow:hidden;
-    box-shadow: 0.1rem 0 0.4rem 0 rgb(0,0,0,0.32);
+    box-shadow: 0.1rem 0 0.4rem 0 rgba(0,0,0,0.32);
+    pointer-events: auto;
 }
 
 .side-container {
@@ -68,7 +69,7 @@ body {
     color: rgb(160,160,160);
     height: 2.5rem;
     grid-column: 1 / -1;
-    box-shadow: 0 0.1rem 0.1rem 0 rgb(0,0,0,0.16), 0 0 0 0.05rem rgb(0,0,0,0.08);
+    box-shadow: 0 0.1rem 0.1rem 0 rgba(0,0,0,0.16), 0 0 0 0.05rem rgba(0,0,0,0.08);
     margin-top: 1.5rem;
     margin-bottom: 0.75rem;
 }
@@ -86,11 +87,18 @@ body {
     min-width: 0;
     font-size: 0.9rem;
     background-color: rgb(100,100,100);
+    height: 100%;
 }
 
 .search-field::placeholder {
-    color: rgb(220,220,220, 0.6);
+    color: rgba(220,220,220, 0.6);
 }
+
+.search-field::-ms-input-placeholder {
+    color: rgba(220,220,220, 0.6);
+}
+
+
 
 .search-symbol {
     grid-column: 2;
@@ -104,7 +112,7 @@ body {
 
 .order, .sort {
     padding: 0.25rem;
-    box-shadow: 0 0.1rem 0.1rem 0 rgb(0,0,0,0.16), 0 0 0 0.05rem rgb(0,0,0,0.08);
+    box-shadow: 0 0.1rem 0.1rem 0 rgba(0,0,0,0.16), 0 0 0 0.05rem rgba(0,0,0,0.08);
     height: fit-content;
     grid-column: span 1;
     color: rgb(160,160,160);
@@ -112,7 +120,7 @@ body {
 }
 
 .sorting-text {
-    color: rgb(220,220,220, 0.9);
+    color: rgba(220,220,220, 0.9);
     grid-column: 1 / 2;
     margin: 0;
     margin-top: 0.25rem;
@@ -143,12 +151,12 @@ body {
 }
 
 .custom-checkbox-indicator {
-    color: rgb(220,220,220, 0.9);
+    color: rgba(220,220,220, 0.9);
     background-color: rgb(108,108,108);
     height: 1.75rem;
     width: 100%;
     font-weight: initial;
-    box-shadow: 0 0.1rem 0.1rem 0 rgb(0,0,0,0.16), 0 0 0 0.05rem rgb(0,0,0,0.08);
+    box-shadow: 0 0.1rem 0.1rem 0 rgba(0,0,0,0.16), 0 0 0 0.05rem rgba(0,0,0,0.08);
     grid-column: 1;
     grid-row: 1;
     display:flex;
@@ -163,7 +171,7 @@ body {
 
 .custom-checkbox-hidden:checked ~ .custom-checkbox-indicator {
     background-color: rgb(78,78,78);
-    box-shadow: inset 0 0.1rem 0.1rem 0 rgb(0,0,0,0.16), inset 0 0 0 0.05rem rgb(0,0,0,0.08);
+    box-shadow: inset 0 0.1rem 0.1rem 0 rgba(0,0,0,0.16), inset 0 0 0 0.05rem rgba(0,0,0,0.08);
     color: rgb(220,220,220);
 }
 
@@ -186,8 +194,8 @@ body {
 .filters {
     background-color: rgb(100,100,100);
     display: grid;
-    box-shadow: 0 0.1rem 0.1rem 0 rgb(0,0,0,0.16), 0 0 0 0.05rem rgb(0,0,0,0.08);
-    color: rgb(220,220,220, 0.9);
+    box-shadow: 0 0.1rem 0.1rem 0 rgba(0,0,0,0.16), 0 0 0 0.05rem rgba(0,0,0,0.08);
+    color: rgba(220,220,220, 0.9);
     padding: 0.25rem;
     grid-column: 1 / -1;
     height: fit-content;
@@ -197,7 +205,7 @@ body {
     grid-area: main;
     overflow-y: auto;
     padding: 1rem 3rem 1rem 3rem;
-    background-color: rgb(19,19,19);
+    background-color: rgba(19,19,19);
 }
 
 .grid {
@@ -234,11 +242,11 @@ body {
     background-size: 100% 100%;
     color: rgb(32,32,32);
     transition: opacity 3s;
-    box-shadow: inset 0 0.1rem 0.1rem 0 rgb(0,0,0,0.16), 0 0 0 0.05rem rgb(0,0,0,0.08);
+    box-shadow: inset 0 0.1rem 0.1rem 0 rgba(0,0,0,0.16), 0 0 0 0.05rem rgba(0,0,0,0.08);
 }
 
 .grid-item {
-    box-shadow: 0.25rem 0.25rem 1.5rem -0.55rem rgb(0,0,0,0.75);
+    box-shadow: 0.25rem 0.25rem 1.5rem -0.55rem rgba(0,0,0,0.75);
     position:relative;
 }
 
@@ -297,6 +305,36 @@ body {
     );
 }
 
+@supports(-ms-ime-align: auto) {
+    .image-frame {
+        opacity: 0;
+    }
+
+    .image-bar {
+        padding-right: 0.75rem;
+        clip-path: initial;
+        position: relative;
+        width: calc(100% - 1.5rem);
+    }
+
+    .image-bar.reduced {
+        padding-right: 0.75rem;
+        clip-path: initial;
+        position: relative;
+        width: calc(100% - 1.5rem);
+    }
+
+    .sixteenbynine {
+        margin:0;
+    }
+
+    .image-ui-container {
+        position:relative;
+        z-index: 0;
+        clip-path: initial;
+    }
+}
+
 .image-title {
     font-weight: bold;
     font-size: 1rem;
@@ -317,7 +355,7 @@ body {
     width: 100%;
     margin-top: 2rem;
     margin-bottom: 1rem;
-    color: rgb(220,220,220,0.9);
+    color: rgba(220,220,220,0.9);
 }
 
 #loadmore2 {
@@ -433,7 +471,7 @@ img:after {
 
 .explorer {
     margin-top: 1.5rem;
-    color: rgb(200,200,200, 0.9);
+    color: rgba(200,200,200, 0.9);
     display: grid;
     grid-template-rows: min-content 1fr;
     grid-column: 1 / -1;
@@ -464,7 +502,7 @@ img:after {
 .explorer-box {
     background-color: rgb(19,19,19);
     height: 3rem;
-    box-shadow: inset 0 0.1rem 0.4rem 0 rgb(0,0,0,0.32), inset 0 0 0 0.05rem rgb(0,0,0,0.08);
+    box-shadow: inset 0 0.1rem 0.4rem 0 rgba(0,0,0,0.32), inset 0 0 0 0.05rem rgba(0,0,0,0.08);
     overflow: hidden;
 }
 
@@ -474,19 +512,19 @@ img:after {
     align-items: center;
     padding-top: 1rem;
     padding-bottom: 1rem;
-    color: rgb(220,220,220, 0.6);
+    color: rgba(220,220,220, 0.6);
 }
 
 .cred-divider {
     height: 0.05rem;
     margin-bottom: 1rem;
     width: calc(100% - 3rem);
-    background-color: rgb(220,220,220,0.3);
+    background-color: rgba(220,220,220,0.3);
 }
 
 .cred {
     grid-column: 1 / -1;
-    color: rgb(220,220,220, 0.3);
+    color: rgba(220,220,220, 0.3);
     margin-top: 0.8rem;
     margin-bottom: 1rem;
     display: flex;
