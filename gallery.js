@@ -471,6 +471,7 @@ function clickSortDescCheckbox() {
 
 function clickFilterSongDownloadCheckbox(event) {
     filterSong = !filterSong;
+    filterSongDownload.checked = filterSong;
     search(searchField.value);
 }
 
@@ -556,7 +557,6 @@ function handleUrlArguments() {
     if (!isEmpty(f)) {
         if (f === "song") {
             clickFilterSongDownloadCheckbox();
-            filterSongDownload.checked = true;
         }
     }
     if (!isEmpty(sb)) {

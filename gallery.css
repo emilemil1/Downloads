@@ -26,17 +26,36 @@ body {
     box-shadow: 0 0.1vw 0.4vw 0 rgb(0,0,0,0.32);
 }
 .sidebar {
+    position: relative;
     grid-area: side;
     z-index: 1;
     background-color: rgb(56,56,56);
+    overflow:hidden;
+    box-shadow: 0.1rem 0 0.4rem 0 rgb(0,0,0,0.32);
+}
+
+.side-container {
+    position: relative;
+    width: calc(100% * 2);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    left: -0%;
+    transition: left 1s;
+}
+
+.side1 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: min-content min-content min-content 1fr min-content;
     padding-left: 2%;
     padding-right: 2%;
-    box-shadow: 0.1rem 0 0.4rem 0 rgb(0,0,0,0.32);
     grid-gap: 0.2rem;
     font-size: 0.9rem;
+}
+
+.side2 {
+    padding-left: 2%;
+    padding-right: 2%;
 }
 
 @media (max-width: 62rem) {
@@ -141,13 +160,21 @@ body {
 }
 
 .custom-checkbox-hidden:not(:checked):hover ~ .custom-checkbox-indicator {
-    background-color: rgb(120,120,120);
+    background-color: rgb(118,118,118);
 }
 
 .custom-checkbox-hidden:checked ~ .custom-checkbox-indicator {
-    background-color: rgb(80,80,80);
+    background-color: rgb(78,78,78);
     box-shadow: inset 0 0.1rem 0.1rem 0 rgb(0,0,0,0.16), inset 0 0 0 0.05rem rgb(0,0,0,0.08);
     color: rgb(220,220,220);
+}
+
+.custom-checkbox input.indicator-single:checked {
+    cursor: pointer;
+}
+
+.custom-checkbox input.indicator-single:checked:hover ~ .custom-checkbox-indicator {
+    background-color: rgb(88,88,88);
 }
 
 .custom-checkbox input:checked {
@@ -462,7 +489,7 @@ img:after {
 .cred-divider {
     height: 0.05rem;
     margin-bottom: 1rem;
-    width: calc(100% - 2rem);
+    width: calc(100% - 3rem);
     background-color: rgb(220,220,220,0.3);
 }
 
@@ -475,4 +502,5 @@ img:after {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    font-size: 0.9rem
 }

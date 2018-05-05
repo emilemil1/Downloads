@@ -22,45 +22,55 @@
     <div class="corner"></div>
     <div class="header"></div>
     <div class="sidebar">
-        <form class="search-form">
-            <input class="search-field" placeholder="Search">
-            <div class="search-symbol">&#8981</div>
-        </form>
-        <div class="order"><div class="sorting-text">Sort by</div>
-            <div class="order-button-panel">
-                <div class="custom-checkbox">
-                    <input type="checkbox" id="order-name" class="custom-checkbox-hidden">
-                    <div class="custom-checkbox-indicator">Name</div>
+        <div class="side-container" onclick="this.style.left = '-100%'">
+            <div class="side1">
+                <form class="search-form">
+                    <input class="search-field" placeholder="Search">
+                    <div class="search-symbol">&#8981</div>
+                </form>
+                <div class="order"><div class="sorting-text">Sort by</div>
+                    <div class="order-button-panel">
+                        <div class="custom-checkbox">
+                            <input type="checkbox" id="order-name" class="custom-checkbox-hidden">
+                            <div class="custom-checkbox-indicator">Name</div>
+                        </div>
+                        <div class="order-date custom-checkbox">
+                            <input type="checkbox" id="order-date" class="custom-checkbox-hidden">
+                            <div class="custom-checkbox-indicator">Date</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="order-date custom-checkbox">
-                    <input type="checkbox" id="order-date" class="custom-checkbox-hidden">
-                    <div class="custom-checkbox-indicator">Date</div>
+                <div class="sort"><div class="sorting-text">Order</div>
+                    <div class="sort-button-panel">
+                        <div class="custom-checkbox">
+                            <input type="checkbox" id="sort-desc" class="custom-checkbox-hidden">
+                            <div class="custom-checkbox-indicator">Desc</div>
+                        </div>
+                        <div class="custom-checkbox">
+                            <input type="checkbox" id="sort-asc" class="custom-checkbox-hidden">
+                            <div class="custom-checkbox-indicator">Asc</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filters"><div class="sorting-text">Filter</div>
+                    <div class="custom-checkbox">
+                        <input type="checkbox" id="filter-song-download" class="custom-checkbox-hidden indicator-single">
+                        <div class="custom-checkbox-indicator">Song Download</div>
+                    </div>
+                </div>
+                <div class="explorer">
+                    <span class="explorer-title" >&nbsp;</span>
+                    <div class="explorer-scrollview">
+                        <div class="explorer-box">
+                            <div class="explorer-box-placeholder">Select an item to view files</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="sort"><div class="sorting-text">Order</div>
-            <div class="sort-button-panel">
-                <div class="custom-checkbox">
-                    <input type="checkbox" id="sort-desc" class="custom-checkbox-hidden">
-                    <div class="custom-checkbox-indicator">Desc</div>
-                </div>
-                <div class="custom-checkbox">
-                    <input type="checkbox" id="sort-asc" class="custom-checkbox-hidden">
-                    <div class="custom-checkbox-indicator">Asc</div>
-                </div>
-            </div>
-        </div>
-        <div class="filters"><div class="sorting-text">Filter</div>
-            <div id="filter-song-download" class="custom-checkbox">
-                <input type="checkbox" id="filter-song-download" class="custom-checkbox-hidden">
-                <div class="custom-checkbox-indicator">Song Download</div>
-            </div>
-        </div>
-        <div class="explorer">
-            <span class="explorer-title" >&nbsp;</span>
-            <div class="explorer-scrollview">
-                <div class="explorer-box">
-                    <div class="explorer-box-placeholder">Select an item to view files</div>
+            <div class="side2">
+                <div class="cred">
+                    <div class="cred-divider"></div>
+                    <span>emilemil1 | Nightcore 2018</span>
                 </div>
             </div>
         </div>
