@@ -299,12 +299,6 @@ body {
     );
 }
 
-@media (max-width: 62rem) {
-    .image-frame {
-        opacity: 0;
-    }
-}
-
 .image-title {
     font-weight: bold;
     font-size: 1rem;
