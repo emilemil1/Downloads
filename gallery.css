@@ -28,17 +28,18 @@ body {
 .sidebar {
     grid-area: side;
     z-index: 1;
-    background-color: rgb(56,56,56);
+    background-color: rgb(32,32,32);
     overflow:hidden;
     box-shadow: 0.1rem 0 0.4rem 0 rgba(0,0,0,0.32);
     pointer-events: auto;
+    padding-top: 0.75rem;
 }
 
 .side-container {
     width: calc(100% * 2);
     display: grid;
     grid-template-columns: 1fr 1fr;
-    transform: translate(-0%, 0%);
+    transform: translateX(-0%);
     transition: transform 1s;
 }
 
@@ -70,7 +71,7 @@ body {
     height: 2.5rem;
     grid-column: 1 / -1;
     box-shadow: 0 0.1rem 0.1rem 0 rgba(0,0,0,0.16), 0 0 0 0.05rem rgba(0,0,0,0.08);
-    margin-top: 1.5rem;
+    margin-top: 0.75rem;
     margin-bottom: 0.75rem;
 }
 
@@ -411,31 +412,11 @@ body {
     -webkit-animation-delay: -0.9s;
     animation-delay: -0.9s;
 }
-
-@-webkit-keyframes sk-cubemove {
-    25% { -webkit-transform: translateX(42px) rotate(-90deg) scale(0.5) }
-    50% { -webkit-transform: translateX(42px) translateY(42px) rotate(-180deg) }
-    75% { -webkit-transform: translateX(0px) translateY(42px) rotate(-270deg) scale(0.5) }
-    100% { -webkit-transform: rotate(-360deg) }
-}
-
 @keyframes sk-cubemove {
-    25% {
-    transform: translateX(40px) rotate(-90deg) scale(0.5);
-    -webkit-transform: translateX(40px) rotate(-90deg) scale(0.5);
-    } 50% {
-    transform: translateX(40px) translateY(40px) rotate(-179deg);
-    -webkit-transform: translateX(40px) translateY(40px) rotate(-179deg);
-    } 50.1% {
-    transform: translateX(40px) translateY(40px) rotate(-180deg);
-    -webkit-transform: translateX(40px) translateY(40px) rotate(-180deg);
-    } 75% {
-    transform: translateX(0px) translateY(40px) rotate(-270deg) scale(0.5);
-    -webkit-transform: translateX(0px) translateY(40px) rotate(-270deg) scale(0.5);
-    } 100% {
-    transform: rotate(-360deg);
-    -webkit-transform: rotate(-360deg);
-    }
+    25% {transform: translateX(42px) rotate(-90deg) scale(0.5)}
+    50% {transform: translateX(42px) translateY(42px) rotate(-180deg)}
+    75% {transform: translateX(0px) translateY(42px) rotate(-270deg) scale(0.5)}
+    100% {transform: rotate(-360deg)}
 }
 
 .scrollbar-measure {
@@ -532,4 +513,86 @@ img:after {
     justify-content: center;
     align-items: center;
     font-size: 0.9rem
+}
+.option {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    color: rgba(220,220,220,0.6);
+    font-size: 0.9rem;
+    display: grid;
+    grid-template-columns: 1fr min-content;
+    align-items: center;
+}
+
+.option-toggle {
+    display: flex;
+    position: relative;
+    width: 2.25rem;
+    height: 1.25rem;
+    align-items: center;
+    overflow: visible;
+    cursor: pointer;
+}
+
+.option-toggle-line {
+    position: absolute;
+    height: 0.75rem;
+    width: 100%;
+    right: 0;
+    top: 0.25rem;
+    border-radius: 0.5rem;
+    background-color: rgb(19,19,19);
+    transition: background-color 0.3s ease;
+}
+
+.option-toggle-circle {
+    position: absolute;
+    height: 1.25rem;
+    width: 1.25rem;
+    right: 0;
+    top: 0;
+    z-index: 3;
+    border-radius: 1rem;
+    background-color: rgb(100,100,100);
+    transform: translateX(0);
+    transition: transform 0.06s ease, background-color 0.06s ease;
+    box-shadow: 0 0.1rem 0.2rem 0 rgba(0,0,0,0.3);
+}
+
+.option-toggle-cover {
+    position: absolute;
+    height: 0.75rem;
+    width: 100%;
+    right: -1rem;
+    top: -0.75rem;
+    z-index: 2;
+    border-color: rgb(32,32,32);
+    border-radius: 2rem;
+    border-style: solid;
+    border-width: 1rem;
+    background-color: rgba(0,0,0,0);
+}
+
+.option-toggle-trail {
+    position: absolute;
+    height: 0.75rem;
+    width: 100%;
+    right: 0;
+    transform: translateX(calc(100% - 0.25rem));
+    top: 0.25rem;
+    border-radius: 0.5rem;
+    background-color: hsl(300,25%,40%,0.5);
+    transition: transform 0.06s ease;
+    z-index: 1;
+}
+
+.option-toggle[checked="true"] .option-toggle-circle {
+    transform: translateX(calc(-100% + 0.25rem));
+    background-color: hsl(300,25%,40%);
+}
+
+.option-toggle[checked="true"] .option-toggle-trail {
+    transform: translateX(0);
 }

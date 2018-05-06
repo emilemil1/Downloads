@@ -22,7 +22,7 @@
     <div class="corner"></div>
     <div class="header"></div>
     <div class="sidebar">
-        <div class="side-container" onclick="this.style.transform = 'translate(-50%, 0%)'">
+        <div class="side-container" onclick="this.style.transform = 'translateX(-50%)'">
             <div class="side1">
                 <form class="search-form">
                     <input class="search-field" placeholder="Search">
@@ -68,9 +68,13 @@
                 </div>
             </div>
             <div class="side2">
-                <div class="cred">
-                    <div class="cred-divider"></div>
-                    <span>emilemil1 | Nightcore 2018</span>
+                <div class="option">Song Download
+                    <div checked=false class="option-toggle" onclick=toggle(event)>
+                        <div class="option-toggle-circle"></div>
+                        <div class="option-toggle-cover"></div>
+                        <div class="option-toggle-trail"></div>
+                        <div class="option-toggle-line"></div>
+                    </div>
                 </div>
             </div>
         </div>

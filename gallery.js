@@ -672,6 +672,9 @@ function getScrollBarWidth() {
         }
     }
 }
+function toggle(event) {
+    event.currentTarget.setAttribute("checked", event.currentTarget.getAttribute("checked") == "false");
+}
 
 async function galleryInit() {
     setupHooks();
