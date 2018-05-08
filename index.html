@@ -68,12 +68,35 @@
                 </div>
             </div>
             <div class="side2">
-                <div class="option">Song Download
-                    <div checked=false class="option-toggle" onclick=toggle(event)>
+                <div class="option">
+                    <span class="option-title">Song Download</span>
+                    <div class="option-toggle" onclick=toggle(event)>
                         <div class="option-toggle-circle"></div>
                         <div class="option-toggle-cover"></div>
                         <div class="option-toggle-trail"></div>
                         <div class="option-toggle-line"></div>
+                    </div>
+                </div>
+                <div class="option">
+                    <span class="option-title">Sort By</span>
+                    <div onclick=dropdown(event) class="option-dropdown" index="0">
+                        <div class="option-dropdown-items">
+                            <div checked onclick=dropdownSelect(event) class="option-dropdown-item" value="name">Name</div>
+                            <div onclick=dropdownSelect(event) class="option-dropdown-item" value="date">Date</div>
+                        </div>
+                        <div class="option-dropdown-background"></div>
+                        <div class="option-dropdown-arrow">&#x25bc;</div>
+                    </div>
+                </div>
+                <div class="option">
+                    <span class="option-title">Order By</span>
+                    <div onclick=dropdown(event) class="option-dropdown" index="0">
+                        <div class="option-dropdown-items">
+                            <div checked onclick=dropdownSelect(event) class="option-dropdown-item" value="ascending">Ascending</div>
+                            <div onclick=dropdownSelect(event) class="option-dropdown-item" value="descending">Descending</div>
+                        </div>
+                        <div class="option-dropdown-background"></div>
+                        <div class="option-dropdown-arrow">&#x25bc;</div>
                     </div>
                 </div>
             </div>

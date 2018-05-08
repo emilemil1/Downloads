@@ -1,4 +1,4 @@
-/*eslint-env es6, jquery, browser*/
+/*eslint-env es6, browser*/
 
 /* TODO
 - Change image on download link hover
@@ -54,6 +54,7 @@ let sortAscCheckbox;
 let sortDescCheckbox;
 let filterSongDownload;
 let scrollPos;
+let onDocClick = [];
 
 let rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
 
@@ -106,7 +107,6 @@ function imgonerror(event) {
     let e = event.currentTarget;
     let folder = e.parentElement.parentElement.data;
     if (e.src !== folder.images[folder.thumbnailIndex][curr.backup]) {
-        console.log(folder.name + " imgur error");
         e.src = folder.images[folder.thumbnailIndex][curr.backup];
     }
 }
@@ -514,6 +514,10 @@ function setupHooks() {
         search(searchField.value);
     }
 
+    document.onclick = function() {
+        clearPopups();
+    }
+
     orderNameCheckbox.onchange = clickNameCheckbox;
     orderDateCheckbox.onchange = clickDateCheckbox;
     sortAscCheckbox.onchange = clickSortAscCheckbox;
@@ -673,7 +677,45 @@ function getScrollBarWidth() {
     }
 }
 function toggle(event) {
-    event.currentTarget.setAttribute("checked", event.currentTarget.getAttribute("checked") == "false");
+    if (event.currentTarget.hasAttribute("checked")) {
+        event.currentTarget.removeAttribute("checked");
+    } else {
+        event.currentTarget.setAttribute("checked", "");
+    }
+}
+
+function clearPopups() {
+    for (let f of onDocClick) {
+        f();
+    }
+    onDocClick = [];
+}
+
+function dropdown(event) {
+    let target = event.currentTarget;
+    if(target.hasAttribute("checked")) {
+        return;
+    }
+    clearPopups();
+    target.setAttribute("checked", "");
+
+    let f = function() {
+        target.removeAttribute("checked");
+    }
+    onDocClick.push(f);
+    event.stopPropagation();
+}
+
+function dropdownSelect(event) {
+    if (event.currentTarget.hasAttribute("checked")) {
+        return;
+    }
+    let target = event.currentTarget;
+    let prevIndex = target.parentElement.parentElement.getAttribute("index");
+    let newIndex = Array.from(target.parentNode.children).indexOf(target);
+    target.parentElement.parentElement.setAttribute("index", newIndex);
+    target.parentElement.children[prevIndex].removeAttribute("checked");
+    target.setAttribute("checked", "");
 }
 
 async function galleryInit() {
