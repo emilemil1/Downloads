@@ -54,7 +54,6 @@ let sortAscCheckbox;
 let sortDescCheckbox;
 let filterSongDownload;
 let scrollPos;
-let onDocClick = [];
 
 let rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
 
@@ -514,10 +513,6 @@ function setupHooks() {
         search(searchField.value);
     }
 
-    document.onclick = function() {
-        clearPopups();
-    }
-
     orderNameCheckbox.onchange = clickNameCheckbox;
     orderDateCheckbox.onchange = clickDateCheckbox;
     sortAscCheckbox.onchange = clickSortAscCheckbox;
@@ -684,39 +679,25 @@ function toggle(event) {
     }
 }
 
-function clearPopups() {
-    for (let f of onDocClick) {
-        f();
-    }
-    onDocClick = [];
-}
-
-function dropdown(event) {
-    let target = event.currentTarget;
-    if(target.hasAttribute("checked")) {
-        return;
-    }
-    clearPopups();
-    target.setAttribute("checked", "");
-
-    let f = function() {
-        target.removeAttribute("checked");
-    }
-    onDocClick.push(f);
-    event.stopPropagation();
-}
-
 function dropdownSelect(event) {
-    if (event.currentTarget.hasAttribute("checked")) {
-        return;
-    }
     let target = event.currentTarget;
-    let prevIndex = target.parentElement.parentElement.getAttribute("index");
+    let root = target.parentElement.parentElement.parentElement.parentElement;
+    let prevIndex = root.getAttribute("index");
     let newIndex = Array.from(target.parentNode.children).indexOf(target);
-    target.parentElement.parentElement.setAttribute("index", newIndex);
+    let selection = target.parentElement.children[newIndex].textContent;
+    root.setAttribute("index", newIndex);
+    root.children[0].textContent = selection;
+
     target.parentElement.children[prevIndex].removeAttribute("checked");
     target.setAttribute("checked", "");
+
+    root.removeAttribute("active");
+    root.onmouseover = function () {
+        root.setAttribute("active", "");
+    }
 }
+
+
 
 async function galleryInit() {
     setupHooks();
