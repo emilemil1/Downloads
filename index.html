@@ -22,40 +22,50 @@
     <div class="corner"></div>
     <div class="header"></div>
     <div class="sidebar">
-        <div class="side-container" onclick="this.style.left= '-100%'">
+        <div class="side-container">
             <div class="side1">
                 <form class="search-form">
                     <input class="search-field" placeholder="Search">
-                    <div class="search-symbol">&#8981;</div>
                 </form>
-                <div class="order"><div class="sorting-text">Sort by</div>
-                    <div class="order-button-panel">
-                        <div class="custom-checkbox">
-                            <input type="checkbox" id="order-name" class="custom-checkbox-hidden">
-                            <div class="custom-checkbox-indicator">Name</div>
-                        </div>
-                        <div class="order-date custom-checkbox">
-                            <input type="checkbox" id="order-date" class="custom-checkbox-hidden">
-                            <div class="custom-checkbox-indicator">Date</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="sort"><div class="sorting-text">Order</div>
-                    <div class="sort-button-panel">
-                        <div class="custom-checkbox">
-                            <input type="checkbox" id="sort-desc" class="custom-checkbox-hidden">
-                            <div class="custom-checkbox-indicator">Desc</div>
-                        </div>
-                        <div class="custom-checkbox">
-                            <input type="checkbox" id="sort-asc" class="custom-checkbox-hidden">
-                            <div class="custom-checkbox-indicator">Asc</div>
+                <div class="option">
+                    <span class="option-title">Sort By</span>
+                    <div id="sort-select" active class="option-dropdown" index="1">
+                        <div  class="option-dropdown-selection">Date</div>
+                        <div class="option-dropdown-arrow">&#x25bc;</div>
+                        <div class="option-dropdown-itemcontainer">
+                            <div class="option-dropdown-items">
+                                <div class="option-dropdown-shadowblocker"></div>
+                                <div class="option-dropdown-items-bg">
+                                    <div onclick=dropdownSelect(event) class="option-dropdown-item">Name</div>
+                                    <div onclick=dropdownSelect(event) class="option-dropdown-item">Date</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="filters"><div class="sorting-text">Filter</div>
-                    <div class="custom-checkbox">
-                        <input type="checkbox" id="filter-song-download" class="custom-checkbox-hidden indicator-single">
-                        <div class="custom-checkbox-indicator">Song Download</div>
+                <div class="option">
+                    <span class="option-title">Order</span>
+                    <div active id="order-select" class="option-dropdown" index="1">
+                        <div class="option-dropdown-selection">Descending</div>
+                        <div class="option-dropdown-arrow">&#x25bc;</div>
+                        <div class="option-dropdown-itemcontainer">
+                            <div class="option-dropdown-items">
+                                <div class="option-dropdown-shadowblocker"></div>
+                                <div class="option-dropdown-items-bg">
+                                    <div onclick=dropdownSelect(event) class="option-dropdown-item">Ascending</div>
+                                    <div onclick=dropdownSelect(event) class="option-dropdown-item">Descending</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="option">
+                    <span class="option-title">Song Download</span>
+                    <div id="filtersong-select" class="option-toggle" noanim onclick=toggle(event)>
+                        <div class="option-toggle-circle"></div>
+                        <div class="option-toggle-cover"></div>
+                        <div class="option-toggle-trail"></div>
+                        <div class="option-toggle-line"></div>
                     </div>
                 </div>
                 <div class="explorer">
@@ -68,50 +78,6 @@
                 </div>
             </div>
             <div class="side2">
-                <form class="search-form">
-                    <input class="search-field" placeholder="Search">
-                </form>
-                <div class="option">
-                    <span class="option-title">Sort By</span>
-                    <div active class="option-dropdown" index="0">
-                        <div class="option-dropdown-selection">Name</div>
-                        <div class="option-dropdown-arrow">&#x25bc;</div>
-                        <div class="option-dropdown-itemcontainer">
-                            <div class="option-dropdown-items">
-                                <div class="option-dropdown-shadowblocker"></div>
-                                <div class="option-dropdown-items-bg">
-                                    <div checked onclick=dropdownSelect(event) class="option-dropdown-item" value="name">Name</div>
-                                    <div onclick=dropdownSelect(event) class="option-dropdown-item" value="date">Date</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="option">
-                    <span class="option-title">Order</span>
-                    <div active class="option-dropdown" index="0">
-                        <div class="option-dropdown-selection">Ascending</div>
-                        <div class="option-dropdown-arrow">&#x25bc;</div>
-                        <div class="option-dropdown-itemcontainer">
-                            <div class="option-dropdown-items">
-                                <div class="option-dropdown-shadowblocker"></div>
-                                <div class="option-dropdown-items-bg">
-                                    <div checked onclick=dropdownSelect(event) class="option-dropdown-item" value="ascending">Ascending</div>
-                                    <div onclick=dropdownSelect(event) class="option-dropdown-item" value="descending">Descending</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="option">
-                    <span class="option-title">Song Download</span>
-                    <div class="option-toggle" onclick=toggle(event)>
-                        <div class="option-toggle-circle"></div>
-                        <div class="option-toggle-cover"></div>
-                        <div class="option-toggle-trail"></div>
-                        <div class="option-toggle-line"></div>
-                    </div>
-                </div>
             </div>
         </div>
         <div class="cred">

@@ -47,13 +47,9 @@ body {
 }
 
 .side1 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: min-content min-content min-content 1fr min-content;
     padding-left: 0.3rem;
     padding-right: 0.3rem;
-    grid-gap: 0.2rem;
-    font-size: 0.9rem;
+    overflow: hiddeN;
 }
 
 .side2 {
@@ -65,144 +61,6 @@ body {
     .sidebar {
         grid-template-columns: 1fr;
     }
-}
-
-.search-form {
-    display: grid;
-    grid-template-columns: 1fr 16%;
-    color: rgb(160,160,160);
-    height: 2.5rem;
-    grid-column: 1 / -1;
-    box-shadow: 0 0.1rem 0.1rem 0 rgba(0,0,0,0.16), 0 0 0 0.05rem rgba(0,0,0,0.08);
-    margin-top: 0.75rem;
-    margin-bottom: 0.75rem;
-}
-
-.search-field {
-    grid-column: 1;
-    grid-row: 1;
-    outline: none;
-    border: none;
-    color: rgb(220,220,220);
-    padding: 0;
-    padding-left: 0.5rem;
-    padding-right: 0.25rem;
-    width: 100%;
-    min-width: 0;
-    font-size: 0.9rem;
-    background-color: rgb(100,100,100);
-    height: 100%;
-}
-
-.search-field::placeholder {
-    color: rgba(220,220,220, 0.6);
-}
-
-.search-field::-ms-input-placeholder {
-    color: rgba(220,220,220, 0.6);
-}
-
-
-
-.search-symbol {
-    grid-column: 2;
-    grid-row: 1;
-    color: rgb(140,140,140);
-    font-size: 3rem;
-    line-height: 63%;
-    background-color: rgb(100,100,100);
-    text-align: center;
-}
-
-.order, .sort {
-    padding: 0.25rem;
-    box-shadow: 0 0.1rem 0.1rem 0 rgba(0,0,0,0.16), 0 0 0 0.05rem rgba(0,0,0,0.08);
-    height: fit-content;
-    grid-column: span 1;
-    color: rgb(160,160,160);
-    background-color: rgb(100,100,100);
-}
-
-.sorting-text {
-    color: rgba(220,220,220, 0.9);
-    grid-column: 1 / 2;
-    margin: 0;
-    margin-top: 0.25rem;
-    margin-bottom: 0.5rem;
-    text-align: center;
-    user-select: none;
-}
-
-.order-button-panel, .sort-button-panel {
-    display:flex;
-}
-
-.custom-checkbox {
-    display: grid;
-    flex: auto;
-}
-
-.custom-checkbox-hidden {
-    opacity: 0;
-    grid-area: a;
-    height: 1.75rem;
-    width: 100%;
-    margin: 0;
-    cursor: pointer;
-    z-index: 2;
-    grid-column: 1;
-    grid-row: 1;
-}
-
-.custom-checkbox-indicator {
-    color: rgba(220,220,220, 0.9);
-    background-color: rgb(108,108,108);
-    height: 1.75rem;
-    width: 100%;
-    font-weight: initial;
-    box-shadow: 0 0.1rem 0.1rem 0 rgba(0,0,0,0.16), 0 0 0 0.05rem rgba(0,0,0,0.08);
-    grid-column: 1;
-    grid-row: 1;
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    overflow-x: hidden;
-}
-
-.custom-checkbox-hidden:not(:checked):hover ~ .custom-checkbox-indicator {
-    background-color: rgb(118,118,118);
-}
-
-.custom-checkbox-hidden:checked ~ .custom-checkbox-indicator {
-    background-color: rgb(78,78,78);
-    box-shadow: inset 0 0.1rem 0.1rem 0 rgba(0,0,0,0.16), inset 0 0 0 0.05rem rgba(0,0,0,0.08);
-    color: rgb(220,220,220);
-}
-
-.custom-checkbox input.indicator-single:checked {
-    cursor: pointer;
-}
-
-.custom-checkbox input.indicator-single:checked:hover ~ .custom-checkbox-indicator {
-    background-color: rgb(88,88,88);
-}
-
-.custom-checkbox input:checked {
-    cursor: default;
-}
-
-.custom-checkbox-hidden:checked {
-    cursor: pointer;
-}
-
-.filters {
-    background-color: rgb(100,100,100);
-    display: grid;
-    box-shadow: 0 0.1rem 0.1rem 0 rgba(0,0,0,0.16), 0 0 0 0.05rem rgba(0,0,0,0.08);
-    color: rgba(220,220,220, 0.9);
-    padding: 0.25rem;
-    grid-column: 1 / -1;
-    height: fit-content;
 }
 
 .main {
@@ -375,6 +233,7 @@ body {
     outline: none;
     cursor: pointer;
     background-color: rgb(88,88,88);
+    color: rgba(220,220,220,0.9);
 }
 
 #loadmore-indicator:hover {
@@ -488,6 +347,7 @@ img:after {
     height: 3rem;
     box-shadow: inset 0 0.1rem 0.4rem 0 rgba(0,0,0,0.32), inset 0 0 0 0.05rem rgba(0,0,0,0.08);
     overflow: hidden;
+    font-size: 0.9rem;
 }
 
 .explorer-box-placeholder {
@@ -599,6 +459,10 @@ img:after {
     z-index: 1;
 }
 
+.option-toggle[noanim] .option-toggle-trail, .option-toggle[noanim] .option-toggle-circle, .option-toggle[noanim] .option-toggle-line {
+    transition: initial;
+}
+
 .option-toggle[checked] .option-toggle-circle {
     transform: translateX(calc(-100% + 0.25rem));
     background-color: hsl(300,25%,45%);
@@ -707,21 +571,21 @@ img:after {
 }
 
 
-.side2 .search-form {
+.search-form {
     background-color: rgb(19,19,19);
     height: 2.375rem;
     margin-top: 0.75rem;
     margin-bottom: 0.75rem;
-    border: solid 0.0625rem rgb(40,40,40);
-    box-shadow: inset 0 0 0 0.05rem rgba(0,0,0,0.08);
 
     display: block;
     color: initial;
+    box-shadow: initial;
 }
 
-.side2 .search-field {
-    outline: none;
+.search-field {
     border: none;
+    outline: solid 0.0625rem rgb(40,40,40);
+    box-shadow: inset 0 0 0 0.05rem rgba(0,0,0,0.08);
     padding: 0;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
@@ -734,10 +598,19 @@ img:after {
     min-width: initial;
 }
 
-.side2 .search-field::placeholder {
+.search-field:focus {
+    outline: solid 0.0625rem hsl(300,25%,45%,1);
+    outline-offset: 0;
+}
+
+.search-field:focus::placeholder {
+    color: rgba(0,0,0,0);
+}
+
+.search-field::placeholder {
     color: rgba(220,220,220, 0.6);
 }
 
-.side2 .search-field::-ms-input-placeholder {
+.search-field::-ms-input-placeholder {
     color: rgba(220,220,220, 0.6);
 }

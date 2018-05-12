@@ -41,17 +41,18 @@ let scrollBarWidth = 17;
 let searchEnabled = false; //Enables and disables search.
 let pageSize = 10;
 let firstPageSize = 1;
+let scrollbarExists = false;
+let pageHeight;
+let mainHeight;
 
 let loadmore;
 let loadedMore = false;
 let grid; //Grid element.
 let main; //Main element.
 let explorerBox;
-let orderNameCheckbox;
+let sortOption;
 let searchField;
-let orderDateCheckbox;
-let sortAscCheckbox;
-let sortDescCheckbox;
+let orderOption;
 let filterSongDownload;
 let scrollPos;
 
@@ -162,7 +163,7 @@ function sort(folders) {
     folders.sort(function(a, b) {
         let result;
 
-        if (sortBy === "name") {
+        if (sortBy.toLowerCase() === "name") {
             let aName = a.name.toLowerCase();
             let bName = b.name.toLowerCase();
             if (aName < bName) {
@@ -172,7 +173,7 @@ function sort(folders) {
             } else {
                 result = 0;
             }
-        } else if (sortBy === "date") {
+        } else if (sortBy.toLowerCase() === "date") {
             if (a.date < b.date) {
                 result = -1;
             } else if (a.date > b.date) {
@@ -182,7 +183,7 @@ function sort(folders) {
             }
         }
 
-        if (orderBy === "descending") {
+        if (orderBy.toLowerCase() === "descending") {
             result = -result;
         }
         return result;
@@ -190,13 +191,6 @@ function sort(folders) {
 }
 
 function calcItemWidth(itemCount) {
-    if (loadedMore && main.style.paddingRight !== "calc(3rem - " + scrollBarWidth + "px)") {
-        main.style.paddingRight = "calc(3rem - " + scrollBarWidth + "px)";
-    } else if (!loadedMore && main.style.paddingRight !== "3rem") {
-        main.style.paddingRight = "3rem";
-    }
-
-
     let gridWidth = window.innerWidth - 15*rem - 6*rem;
     let gridHeight = window.innerHeight - 2.75*rem - 2*rem;
     if (itemCount !== 1) {
@@ -214,6 +208,8 @@ function calcItemWidth(itemCount) {
         let gridRowsPerPage = Math.max(Math.floor((gridHeight - (6*rem)) / itemHeight), 1);
         firstPageSize = gridRowsPerPage * gridItemsPerRow;
         pageSize = Math.max(gridRowsPerPage * gridItemsPerRow * 3, 10);
+        let visibleRows = gridFolders.length / gridItemsPerRow;
+        pageHeight = (itemHeight * visibleRows) + ((1 * rem) * (visibleRows - 1)) + (6 * rem);
     } else {
         let fitWidth = (gridHeight - rem)*(16/9);
         if (fitWidth > gridWidth) {
@@ -224,7 +220,16 @@ function calcItemWidth(itemCount) {
         if (itemWidth <= thumbSizes[0].width) {
             itemHeight += 42;
         }
+        pageHeight = mainHeight;
+    }
 
+    console.log("page:" + pageHeight);
+    console.log("main:" + mainHeight);
+
+    if ((pageHeight > mainHeight) && main.style.paddingRight !== "calc(3rem - " + scrollBarWidth + "px)") {
+        main.style.paddingRight = "calc(3rem - " + scrollBarWidth + "px)";
+    } else if ((pageHeight <= mainHeight) && main.style.paddingRight !== "3rem") {
+        main.style.paddingRight = "3rem";
     }
 }
 
@@ -395,10 +400,10 @@ function setUrl(string) {
     if (string !== "") {
         modstring += "s=" + string + "&";
     }
-    if (sortBy !== "date") {
-        modstring += "sb=" + sortBy + "&";
+    if (sortBy.toLowerCase() !== "date") {
+        modstring += "sb=" + "name" + "&";
     }
-    if (orderBy !== "descending") {
+    if (orderBy.toLowerCase() !== "descending") {
         modstring += "o=" + "asc" + "&";
     }
     if (filterSong !== false) {
@@ -425,70 +430,38 @@ function search(string) {
     fillGrid(results);
 }
 
-function clickNameCheckbox() {
-    orderNameCheckbox.disabled = true;
-    orderDateCheckbox.disabled = false;
-    orderNameCheckbox.checked = true;
-    orderDateCheckbox.checked = false;
-    sortBy = "name";
-    if(orderBy === "descending") {
-        search(searchField.value);
-    } else {
-        sortDescCheckbox.click();
+function setSort(string) {
+    if (sortBy === string) {
+        return;
     }
-}
-
-function clickDateCheckbox() {
-    orderDateCheckbox.disabled = true;
-    orderNameCheckbox.disabled = false;
-    orderDateCheckbox.checked = true;
-    orderNameCheckbox.checked = false;
-    sortBy = "date";
-    if(orderBy === "descending") {
-        search(searchField.value);
-    } else {
-        sortDescCheckbox.click();
-    }
-}
-
-function clickSortAscCheckbox() {
-    sortAscCheckbox.disabled = true;
-    sortDescCheckbox.disabled = false;
-    sortAscCheckbox.checked = true;
-    sortDescCheckbox.checked = false;
-    orderBy = "ascending";
+    sortBy = string;
+    sortOption.children[0].textContent = sortBy;
     search(searchField.value);
 }
 
-function clickSortDescCheckbox() {
-    sortDescCheckbox.disabled = true;
-    sortAscCheckbox.disabled = false;
-    sortDescCheckbox.checked = true;
-    sortAscCheckbox.checked = false;
-    orderBy = "descending";
-    search(searchField.value);
-}
-
-function clickFilterSongDownloadCheckbox(event) {
-    filterSong = !filterSong;
-    filterSongDownload.checked = filterSong;
+function setOrder(string) {
+    if (orderBy === string) {
+        return;
+    }
+    orderBy = string;
+    orderOption.children[0].textContent = orderBy;
     search(searchField.value);
 }
 
 function setupHooks() {
     main = document.getElementsByClassName("main")[0];
-    orderNameCheckbox = document.getElementById("order-name");
     searchField = document.getElementsByClassName("search-field")[0];
-    orderDateCheckbox = document.getElementById("order-date");
-    sortAscCheckbox = document.getElementById("sort-asc");
-    sortDescCheckbox = document.getElementById("sort-desc");
-    filterSongDownload = document.getElementById("filter-song-download");
+    orderOption = document.getElementById("order-select");
+    sortOption = document.getElementById("sort-select");
+    filterSongDownload = document.getElementById("filtersong-select");
 
     explorerBox = document.getElementsByClassName("explorer-box")[0];
     grid = main.firstElementChild;
     loadmore = main.lastElementChild;
+    mainHeight = main.offsetHeight - (2 * rem);
     window.onresize = function() {
         rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        mainHeight = main.offsetHeight - (2 * rem);
         calcItemWidth(gridFolders.length);
         calcViewer();
         if (gridFolders.length === 1) {
@@ -513,11 +486,9 @@ function setupHooks() {
         search(searchField.value);
     }
 
-    orderNameCheckbox.onchange = clickNameCheckbox;
-    orderDateCheckbox.onchange = clickDateCheckbox;
-    sortAscCheckbox.onchange = clickSortAscCheckbox;
-    sortDescCheckbox.onchange = clickSortDescCheckbox;
-    filterSongDownload.onchange = clickFilterSongDownloadCheckbox;
+    requestAnimationFrame(function(){
+        filterSongDownload.removeAttribute("noanim");
+    })
 }
 
 function getRGB(obj) {
@@ -551,6 +522,11 @@ function getUrlParams(prop) {
     }
 }
 
+function enableSongFilter() {
+    filterSong = true;
+    filterSongDownload.setAttribute("checked", "");
+}
+
 function handleUrlArguments() {
     let params = getUrlParams();
     let sb = params.sb;
@@ -560,24 +536,44 @@ function handleUrlArguments() {
 
     if (!isEmpty(f)) {
         if (f === "song") {
-            clickFilterSongDownloadCheckbox();
+            enableSongFilter();
         }
     }
     if (!isEmpty(sb)) {
-        if (sb === "name") {clickNameCheckbox()}
-        else if (sb === "date") {clickDateCheckbox()}
+        if (sb === "name") {setSort("Name")}
+        else if (sb === "date") {setSort("Date")}
     } else {
-        clickDateCheckbox();
+        setSort("Date");
     }
     if (!isEmpty(o)) {
-        if (o === "asc") {clickSortAscCheckbox()}
-        else if (o === "desc") {clickSortDescCheckbox()}
+        if (o === "asc") {setOrder("Ascending")}
+        else if (o === "desc") {setOrder("Descending")}
     } else {
-        clickSortDescCheckbox();
+        setOrder("Descending");
     }
 
     if (!isEmpty(s)) {
         document.getElementsByClassName("search-field")[0].value = s;
+    }
+
+    initOptions()
+}
+
+function initOptions() {
+    if (orderBy === "Ascending") {
+        orderOption.setAttribute("index", 0);
+        orderOption.lastElementChild.firstElementChild.lastElementChild.children[0].setAttribute("checked", "");
+    } else if (orderBy === "Descending") {
+        orderOption.setAttribute("index", 1);
+        orderOption.lastElementChild.firstElementChild.lastElementChild.children[1].setAttribute("checked", "");
+    }
+
+    if (sortBy === "Name") {
+        sortOption.setAttribute("index", 0);
+        sortOption.lastElementChild.firstElementChild.lastElementChild.children[0].setAttribute("checked", "");
+    } else if (sortBy === "Date") {
+        sortOption.setAttribute("index", 1);
+        sortOption.lastElementChild.firstElementChild.lastElementChild.children[1].setAttribute("checked", "");
     }
 }
 
@@ -672,10 +668,16 @@ function getScrollBarWidth() {
     }
 }
 function toggle(event) {
-    if (event.currentTarget.hasAttribute("checked")) {
-        event.currentTarget.removeAttribute("checked");
+    let target = event.currentTarget;
+    if (target.hasAttribute("checked")) {
+        target.removeAttribute("checked");
     } else {
-        event.currentTarget.setAttribute("checked", "");
+        target.setAttribute("checked", "");
+    }
+
+    if (target.getAttribute("id") === "filtersong-select") {
+        filterSong = target.hasAttribute("checked");
+        search(searchField.value);
     }
 }
 
@@ -695,15 +697,17 @@ function dropdownSelect(event) {
     root.onmouseover = function () {
         root.setAttribute("active", "");
     }
+
+    if (root.getAttribute("id") === "order-select") {
+        setOrder(selection);
+    } else if (root.getAttribute("id") === "sort-select") {
+        setSort(selection);
+    }
 }
 
 
 
 async function galleryInit() {
-    setupHooks();
-    handleUrlArguments();
-    setInterval(slideShow, 7000);
-    getScrollBarWidth();
     await window.preload;
     storeData(window.folders);
     document.getElementById("spinner").remove();
@@ -715,5 +719,14 @@ async function galleryInit() {
         search("");
     }
 }
+
+function preloader() {
+    setupHooks();
+    handleUrlArguments();
+    setInterval(slideShow, 7000);
+    getScrollBarWidth();
+}
+
 document.addEventListener("DOMContentLoaded", galleryInit);
+preloader();
 
