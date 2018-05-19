@@ -17,6 +17,8 @@
 - minify everything
 - fix jank
 - smooth load images when changing resolution
+- only fade in images if they are not already loaded
+- make sort options clickable to reveal menu
 */
 
 let itemData = []; //All folders.
@@ -44,6 +46,7 @@ let firstPageSize = 1;
 let scrollbarExists = false;
 let pageHeight;
 let mainHeight;
+let gridItemsPerRow = 1;
 
 let loadmore;
 let loadedMore = false;
@@ -114,14 +117,15 @@ function imgonerror(event) {
 function imgonload(event) {
     let e = event.currentTarget;
     let folder = e.parentElement.parentElement.data;
+    let rgb = getRGB(folder.images[folder.thumbnailIndex].dominantColorDark);
+    folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
+    folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
+    folder.gridItem.lastElementChild.style.backgroundColor = rgb;
     if (e.shadow !== undefined) {
         e.shadow.style.opacity = 0;
         e.shadow = undefined;
     }
     e.style.opacity = 1;
-    let rgb = getRGB(folder.images[folder.thumbnailIndex].dominantColorDark);
-    folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
-    folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
 }
 
 function slideShow() {
@@ -191,25 +195,26 @@ function sort(folders) {
 }
 
 function calcItemWidth(itemCount) {
-    let gridWidth = window.innerWidth - 15*rem - 6*rem;
-    let gridHeight = window.innerHeight - 2.75*rem - 2*rem;
+    let gridWidth = document.body.getBoundingClientRect().width - 15*rem - 6*rem;
+    let gridHeight = document.body.getBoundingClientRect().height - 2.75*rem - 2*rem;
     if (itemCount !== 1) {
-        let gridItemsPerRow = Math.floor((gridWidth - (16*rem)) / (17*rem)) + 1;
-        let gridItemsFirstRow = Math.min(gridItemsPerRow, folders.length);
-        gridItemsFirstRow = Math.min(gridItemsFirstRow, itemCount);
+        gridItemsPerRow = Math.floor((gridWidth - (16*rem)) / (17*rem)) + 1;
+        let gridItemsFirstRow = Math.min(gridItemsPerRow, folders.length, itemCount);
         let totalItemWidth = gridWidth - (1 * rem * (gridItemsFirstRow-1));
-        itemWidth = totalItemWidth/gridItemsFirstRow;
-        itemHeight = itemWidth/(16/9);
+        itemWidth = (totalItemWidth/gridItemsFirstRow);
+        itemHeight = ((itemWidth-4)/(16/9))+4;
         if (itemWidth <= thumbSizes[0].width) {
-            itemHeight += 42;
-        } else {
-            itemHeight += rem;
+            itemHeight = itemHeight + 34;
         }
-        let gridRowsPerPage = Math.max(Math.floor((gridHeight - (6*rem)) / itemHeight), 1);
+        let gridRowsPerPage = Math.max(Math.floor((gridHeight - (9*rem)) / itemHeight), 1);
         firstPageSize = gridRowsPerPage * gridItemsPerRow;
         pageSize = Math.max(gridRowsPerPage * gridItemsPerRow * 3, 10);
-        let visibleRows = gridFolders.length / gridItemsPerRow;
-        pageHeight = (itemHeight * visibleRows) + ((1 * rem) * (visibleRows - 1)) + (6 * rem);
+        let visibleItems = gridFolders.length;
+        if (gridFolders.length === 0) {
+            visibleItems = firstPageSize;
+        }
+        let visibleRows = (visibleItems / gridItemsPerRow);
+        pageHeight = (itemHeight * visibleRows) + ((1 * rem) * (visibleRows - 1)) + (9 * rem);
     } else {
         let fitWidth = (gridHeight - rem)*(16/9);
         if (fitWidth > gridWidth) {
@@ -222,9 +227,6 @@ function calcItemWidth(itemCount) {
         }
         pageHeight = mainHeight;
     }
-
-    console.log("page:" + pageHeight);
-    console.log("main:" + mainHeight);
 
     if ((pageHeight > mainHeight) && main.style.paddingRight !== "calc(3rem - " + scrollBarWidth + "px)") {
         main.style.paddingRight = "calc(3rem - " + scrollBarWidth + "px)";
@@ -285,13 +287,6 @@ function resizeSource() {
             imgurl = folder.images[folder.thumbnailIndex][curr.backup];
         }
 
-        if (folder.rgbset === false) {
-            let rgb = getRGB(folder.images[0].dominantColorDark);
-            folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
-            folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
-            folder.gridItem.lastElementChild.style.backgroundColor = rgb;
-        }
-
         if (folder.gridItem.lastElementChild.firstElementChild.src !== imgurl) {
             folder.gridItem.lastElementChild.firstElementChild.src = imgurl;
         }
@@ -301,7 +296,9 @@ function resizeSource() {
 function loadMore() {
     let moreFolders = [];
 
-    for (let i = gridFolders.length; moreFolders.length < pageSize; i++) {
+    let pageMod = -gridFolders.length % gridItemsPerRow;
+
+    for (let i = gridFolders.length; moreFolders.length < (pageSize + pageMod); i++) {
         if (gridFolders.length === searchFolders.length) {
             loadmore.style.display = "none";
             break;
@@ -316,6 +313,12 @@ function loadMore() {
     }
     let frag = document.createDocumentFragment();
     for(e of moreFolders) {
+        if (e.rgbset === false) {
+            let rgb = getRGB(e.images[0].dominantColorDark);
+            e.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
+            e.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
+            e.gridItem.lastElementChild.style.backgroundColor = rgb;
+        }
         frag.appendChild(e.gridItem);
     }
 
@@ -344,6 +347,13 @@ function fillGrid(folders) {
             break;
         }
         gridFolders.push(folder);
+
+        if (folder.rgbset === false) {
+            let rgb = getRGB(folder.images[0].dominantColorDark);
+            folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
+            folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
+            folder.gridItem.lastElementChild.style.backgroundColor = rgb;
+        }
     }
 
     slideShowGridItems = [];
@@ -414,7 +424,7 @@ function setUrl(string) {
         url += modstring;
     }
     if (url != baseurl) {
-        window.history.pushState("", "", url);
+        window.history.replaceState("", "", url);
     }
 }
 

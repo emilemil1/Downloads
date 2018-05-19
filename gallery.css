@@ -73,21 +73,20 @@ body {
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-    grid-template-rows: repeat(auto-fit, minmax(9rem, 1fr));
     grid-gap: 1rem;
-    grid-row-gap: 1rem;
 }
 
 .sixteenbynine {
     position: relative;
-    padding-top: calc(100% * 0.5625);
-    margin: 0.5rem;
+    padding-top: calc((100% - 4px) * 0.5625);
+    margin: 2px;
     background-color: rgb(32,32,32);
     transition: background-color 3s;
 }
 
 .sixteenbynine.reduced {
     margin: 0;
+    padding-top: calc(100% * 0.5625);
 }
 
 .gallery-image {
@@ -108,6 +107,7 @@ body {
 }
 
 .grid-item {
+    overflow: hidden;
     box-shadow: 0.25rem 0.25rem 1.5rem -0.55rem rgba(0,0,0,0.75);
     position:relative;
 }
@@ -119,13 +119,18 @@ body {
     bottom:0;
     right:0;
     z-index: 1;
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    filter: drop-shadow(0 0 0.2rem rgba(0,0,0,0.5));
 }
 
 .image-ui-container.reduced {
     position:relative;
     z-index: 0;
     clip-path: initial;
+    filter: initial;
+}
+
+.image-ui-container.reduced .image-frame {
+    display: none;
 }
 
 .image-bar {
@@ -137,16 +142,15 @@ body {
     grid-template-rows: auto 1fr;
     color: rgb(220,220,220);
     background-color: rgb(32,32,32);
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-    padding-left: 0.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    padding-left: 0.5rem;
     padding-right: 2.5rem;
     transition: background-color 2s;
     clip-path: polygon(0 0, 100% 0, calc(100% - 2rem) 100%, 0 100%);
 }
 
 .image-bar.reduced {
-        width: calc(100% - 2rem);
         padding-right: 0.75rem;
         clip-path: initial;
         position: relative;
@@ -163,7 +167,7 @@ body {
     transition: background-color 2s;
     clip-path: polygon(
         0 0, 100% 0, 100% 100%, 0 100%, 0 0,
-        0.5rem 0.5rem, 0.5rem calc(100% - 0.5rem), calc(100% - 0.5rem) calc(100% - 0.5rem), calc(100% - 0.5rem) 0.5rem, 0.5rem 0.5rem
+        2px 2px, 2px calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) 2px, 2px 2px
     );
 }
 
@@ -499,7 +503,7 @@ img:after {
     align-items: center;
     height: 100%;
     color: rgb(100,100,100);
-    margin-right: 0.5rem;
+    margin-right: 0.25rem;
     margin-left: 0.5rem;
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
