@@ -15,11 +15,8 @@
 - specific search for grid item
 - use imgur as first-stage (uploads remaining)
 - minify everything
-- fix jank
 - smooth load images when changing resolution
 - only fade in images if they are not already loaded
-- make sort options clickable to reveal menu
-- make sort options hover area bigger
 - force reload of manifest on update
 - slide out sort options
 - fade in grid initial load animation only if longer than 0.1 seconds
@@ -177,9 +174,9 @@ function sort(folders) {
             let aName = a.name.toLowerCase();
             let bName = b.name.toLowerCase();
             if (aName < bName) {
-                result = 1;
-            } else if (aName > bName) {
                 result = -1;
+            } else if (aName > bName) {
+                result = 1;
             } else {
                 result = 0;
             }
@@ -453,21 +450,61 @@ function search(string) {
     fillGrid(results);
 }
 
-function setSort(string) {
-    if (sortBy === string) {
-        return;
+function orderMode(string) {
+    let items = orderOption.lastElementChild.firstElementChild.lastElementChild;
+
+    if (string === "Name") {
+        items.children[0].textContent = "A-Z";
+        items.children[0].setAttribute("value", "Ascending");
+        items.children[1].textContent = "Z-A";
+        items.children[1].setAttribute("value", "Descending");
+    } else if (string === "Date") {
+        items.children[0].textContent = "Newest";
+        items.children[0].setAttribute("value", "Descending");
+        items.children[1].textContent = "Oldest";
+        items.children[1].setAttribute("value", "Ascending");
     }
+}
+
+function setSort(string) {
     sortBy = string;
-    sortOption.children[0].textContent = sortBy;
+    sortOption.firstElementChild.textContent = sortBy;
+    orderMode(sortBy);
+
+    let prevIndex = sortOption.firstElementChild.getAttribute("index");
+    let items = sortOption.lastElementChild.firstElementChild.lastElementChild;
+    items.children[prevIndex].removeAttribute("checked");
+
+    if (sortBy === "Date") {
+        sortOption.firstElementChild.setAttribute("index", "0");
+        items.children[0].setAttribute("checked", "");
+        setOrder("Descending");
+    } else if (sortBy === "Name") {
+        sortOption.firstElementChild.setAttribute("index", "1");
+        items.children[1].setAttribute("checked", "");
+        setOrder("Ascending");
+    }
     search(searchField.value);
 }
 
 function setOrder(string) {
-    if (orderBy === string) {
-        return;
-    }
     orderBy = string;
-    orderOption.children[0].textContent = orderBy;
+    let prevIndex = orderOption.firstElementChild.getAttribute("index");
+    let items = orderOption.lastElementChild.firstElementChild.lastElementChild;
+    items.children[prevIndex].removeAttribute("checked");
+
+    let index = 0;
+    if (orderBy === "Ascending") {
+        index = 1;
+    }
+    if (sortBy === "Name") {
+        index = Math.abs(index - 1);
+    }
+
+    orderOption.firstElementChild.setAttribute("index", index);
+    items.children[index].setAttribute("checked", "");
+    orderOption.firstElementChild.textContent = items.children[index].textContent;
+
     search(searchField.value);
 }
 
@@ -584,26 +621,6 @@ function handleUrlArguments() {
     if (!isEmpty(s)) {
         document.getElementsByClassName("search-field")[0].value = s;
     }
-
-    initOptions()
-}
-
-function initOptions() {
-    if (orderBy === "Ascending") {
-        orderOption.setAttribute("index", 0);
-        orderOption.lastElementChild.firstElementChild.lastElementChild.children[0].setAttribute("checked", "");
-    } else if (orderBy === "Descending") {
-        orderOption.setAttribute("index", 1);
-        orderOption.lastElementChild.firstElementChild.lastElementChild.children[1].setAttribute("checked", "");
-    }
-
-    if (sortBy === "Name") {
-        sortOption.setAttribute("index", 0);
-        sortOption.lastElementChild.firstElementChild.lastElementChild.children[0].setAttribute("checked", "");
-    } else if (sortBy === "Date") {
-        sortOption.setAttribute("index", 1);
-        sortOption.lastElementChild.firstElementChild.lastElementChild.children[1].setAttribute("checked", "");
-    }
 }
 
 function calcViewer() {
@@ -711,17 +728,14 @@ function toggle(event) {
 }
 
 function dropdownSelect(event) {
-    let target = event.currentTarget;
-    let root = target.parentElement.parentElement.parentElement.parentElement;
-    let prevIndex = root.getAttribute("index");
-    let newIndex = Array.from(target.parentNode.children).indexOf(target);
-    let selection = target.parentElement.children[newIndex].textContent;
-    root.setAttribute("index", newIndex);
-    root.children[0].textContent = selection;
-
-    target.parentElement.children[prevIndex].removeAttribute("checked");
-    target.setAttribute("checked", "");
+    let root = event.currentTarget.parentElement.parentElement.parentElement.parentElement;
+    let selection = event.currentTarget.getAttribute("value");
     root.removeAttribute("active");
+
+    if (root.firstElementChild.textContent === event.currentTarget.textContent) {
+        event.stopPropagation();
+        return;
+    }
 
     if (root.getAttribute("id") === "order-select") {
         setOrder(selection);

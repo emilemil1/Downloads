@@ -497,6 +497,7 @@ img:after {
     grid-row: 1;
     grid-column: 1;
     padding-right: 0.5rem;
+    white-space: nowrap;
 }
 
 .option-dropdown-arrow {

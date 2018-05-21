@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta http-equiv="cache-control" content="public">
+    <meta charset="UTF-8">
     <title>Image Gallery</title>
     <script>
         //Fetch manifest
@@ -29,15 +30,15 @@
                 </form>
                 <div class="option">
                     <span class="option-title">Sort By</span>
-                    <div id="sort-select" class="option-dropdown" index="1" onclick="dropdownOpen(event)">
-                        <div  class="option-dropdown-selection">Date</div>
+                    <div id="sort-select" class="option-dropdown" onclick="dropdownOpen(event)">
+                        <div  class="option-dropdown-selection" index="0">Date</div>
                         <div class="option-dropdown-arrow">&#x25bc;</div>
                         <div class="option-dropdown-itemcontainer">
                             <div class="option-dropdown-items">
                                 <div class="option-dropdown-shadowblocker"></div>
                                 <div class="option-dropdown-items-bg">
-                                    <div onclick=dropdownSelect(event) class="option-dropdown-item">Name</div>
-                                    <div onclick=dropdownSelect(event) class="option-dropdown-item">Date</div>
+                                    <div onclick=dropdownSelect(event) class="option-dropdown-item" value="Date">Date</div>
+                                    <div onclick=dropdownSelect(event) class="option-dropdown-item" value="Name">Name</div>
                                 </div>
                             </div>
                         </div>
@@ -45,15 +46,15 @@
                 </div>
                 <div class="option">
                     <span class="option-title">Order</span>
-                    <div id="order-select" class="option-dropdown" index="1" onclick="dropdownOpen(event)">
-                        <div class="option-dropdown-selection">Descending</div>
+                    <div id="order-select" class="option-dropdown" onclick="dropdownOpen(event)">
+                        <div class="option-dropdown-selection" index="0">Newest</div>
                         <div class="option-dropdown-arrow">&#x25bc;</div>
                         <div class="option-dropdown-itemcontainer">
                             <div class="option-dropdown-items">
                                 <div class="option-dropdown-shadowblocker"></div>
                                 <div class="option-dropdown-items-bg">
-                                    <div onclick=dropdownSelect(event) class="option-dropdown-item">Ascending</div>
-                                    <div onclick=dropdownSelect(event) class="option-dropdown-item">Descending</div>
+                                    <div onclick=dropdownSelect(event) class="option-dropdown-item" value="Descending">Newest</div>
+                                    <div onclick=dropdownSelect(event) class="option-dropdown-item" value="Ascending">Oldest</div>
                                 </div>
                             </div>
                         </div>
