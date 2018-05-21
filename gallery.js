@@ -19,12 +19,18 @@
 - smooth load images when changing resolution
 - only fade in images if they are not already loaded
 - make sort options clickable to reveal menu
+- make sort options hover area bigger
+- force reload of manifest on update
+- slide out sort options
+- fade in grid initial load animation only if longer than 0.1 seconds
 */
 
 let itemData = []; //All folders.
 let gridFolders = []; //Visible folders that match the current search.
 let searchFolders = []; //All folders that match the current search.
 let slideShowGridItems = []; //Visible folders that contain multiple images.
+let slideShowLoop;
+let popups = [];
 
 let sourceFrag;
 let imgFrag;
@@ -213,8 +219,11 @@ function calcItemWidth(itemCount) {
         if (gridFolders.length === 0) {
             visibleItems = firstPageSize;
         }
-        let visibleRows = (visibleItems / gridItemsPerRow);
-        pageHeight = (itemHeight * visibleRows) + ((1 * rem) * (visibleRows - 1)) + (9 * rem);
+        let visibleRows = Math.ceil(visibleItems / gridItemsPerRow);
+        pageHeight = (itemHeight * visibleRows) + ((1 * rem) * (visibleRows - 1));
+        if (visibleItems < itemCount) {
+            pageHeight += (9 * rem);
+        }
     } else {
         let fitWidth = (gridHeight - rem)*(16/9);
         if (fitWidth > gridWidth) {
@@ -385,6 +394,10 @@ function fillGrid(folders) {
         let widthDiff = parseFloat(grid.offsetWidth) - itemWidth;
         gridFolders[0].gridItem.style.marginLeft = (widthDiff/2) + "px";
     }
+    if (slideShowLoop !== undefined) {
+        clearInterval(slideShowLoop);
+    }
+    slideShowLoop = setInterval(slideShow, 7000);
 }
 
 function searchItem(item, string) {
@@ -468,7 +481,7 @@ function setupHooks() {
     explorerBox = document.getElementsByClassName("explorer-box")[0];
     grid = main.firstElementChild;
     loadmore = main.lastElementChild;
-    mainHeight = main.offsetHeight - (2 * rem);
+    mainHeight = document.documentElement.scrollHeight - (2.75 * rem) - (2 * rem);
     window.onresize = function() {
         rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
         mainHeight = main.offsetHeight - (2 * rem);
@@ -499,6 +512,12 @@ function setupHooks() {
     requestAnimationFrame(function(){
         filterSongDownload.removeAttribute("noanim");
     })
+
+    window.onclick = function() {
+        for (let pop of popups) {
+            pop.removeAttribute("active");
+        }
+    }
 }
 
 function getRGB(obj) {
@@ -702,17 +721,26 @@ function dropdownSelect(event) {
 
     target.parentElement.children[prevIndex].removeAttribute("checked");
     target.setAttribute("checked", "");
-
     root.removeAttribute("active");
-    root.onmouseover = function () {
-        root.setAttribute("active", "");
-    }
 
     if (root.getAttribute("id") === "order-select") {
         setOrder(selection);
     } else if (root.getAttribute("id") === "sort-select") {
         setSort(selection);
     }
+    event.stopPropagation();
+}
+
+function dropdownOpen(event) {
+    if (event.currentTarget.hasAttribute("active")) {
+        return;
+    }
+    for (let pop of popups) {
+        pop.removeAttribute("active");
+    }
+    event.currentTarget.setAttribute("active", "");
+    popups.push(event.currentTarget);
+    event.stopPropagation();
 }
 
 
@@ -733,7 +761,6 @@ async function galleryInit() {
 function preloader() {
     setupHooks();
     handleUrlArguments();
-    setInterval(slideShow, 7000);
     getScrollBarWidth();
 }
 

@@ -142,9 +142,9 @@ body {
     grid-template-rows: auto 1fr;
     color: rgb(220,220,220);
     background-color: rgb(32,32,32);
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-    padding-left: 0.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    padding-left: 0.75rem;
     padding-right: 2.5rem;
     transition: background-color 2s;
     clip-path: polygon(0 0, 100% 0, calc(100% - 2rem) 100%, 0 100%);
@@ -187,7 +187,6 @@ body {
         padding-right: 0.75rem;
         clip-path: initial;
         position: relative;
-        width: calc(100% - 1.5rem);
     }
 
     .sixteenbynine {
@@ -479,11 +478,17 @@ img:after {
 .option-dropdown {
     display: grid;
     grid-template-columns: min-content min-content min-content;
-    grid-template-rows: 1.25rem;
     color: rgba(220,220,220,0.6);
     font-size: 0.9rem;
-    cursor: default;
+    cursor: pointer;
     height: 100%;
+    padding-right: 0.25rem;
+    padding-left: 0.5rem;
+}
+
+.option-dropdown[active] {
+    cursor: default;
+    background-color: rgb(56,56,56);
 }
 
 .option-dropdown-selection {
@@ -491,9 +496,7 @@ img:after {
     align-items: center;
     grid-row: 1;
     grid-column: 1;
-    height: 100%;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    padding-right: 0.5rem;
 }
 
 .option-dropdown-arrow {
@@ -503,10 +506,6 @@ img:after {
     align-items: center;
     height: 100%;
     color: rgb(100,100,100);
-    margin-right: 0.25rem;
-    margin-left: 0.5rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
     z-index: 1;
 }
 
@@ -519,6 +518,8 @@ img:after {
     width: fit-content;
     display: none;
     z-index: 3;
+    margin-left: 0.25rem;
+    margin-top: -0.0625rem;
 }
 
 .option-dropdown-shadowblocker {
@@ -537,7 +538,7 @@ img:after {
     margin-left: 0.3rem;
 }
 
-.option-dropdown:hover[active] .option-dropdown-items {
+.option-dropdown[active] .option-dropdown-items {
     display: flex;
     flex-direction: row;
 }
