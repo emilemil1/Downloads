@@ -14,6 +14,9 @@
             });
             request.open("get", "metadata.json", true);
             request.send();
+            window.spinAdd = setTimeout(100, function() {
+                document.getElementById("spinner").style.opacity = 1;
+            })
         })
     </script>
     <link rel="stylesheet" type="text/css" href="gallery.css">
@@ -31,7 +34,7 @@
                 <div class="option">
                     <span class="option-title">Sort By</span>
                     <div id="sort-select" class="option-dropdown" onclick="dropdownOpen(event)">
-                        <div  class="option-dropdown-selection" index="0">Date</div>
+                        <div  class="option-dropdown-selection" index="0"></div>
                         <div class="option-dropdown-arrow">&#x25bc;</div>
                         <div class="option-dropdown-itemcontainer">
                             <div class="option-dropdown-items">
@@ -47,7 +50,7 @@
                 <div class="option">
                     <span class="option-title">Order</span>
                     <div id="order-select" class="option-dropdown" onclick="dropdownOpen(event)">
-                        <div class="option-dropdown-selection" index="0">Newest</div>
+                        <div class="option-dropdown-selection" index="0"></div>
                         <div class="option-dropdown-arrow">&#x25bc;</div>
                         <div class="option-dropdown-itemcontainer">
                             <div class="option-dropdown-items">

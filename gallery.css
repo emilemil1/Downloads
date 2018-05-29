@@ -253,6 +253,8 @@ body {
     align-items: center;
     width: 100%;
     height: 100%;
+    opacity: 0;
+    transition: opacity 1s;
 }
 
 .spinner {
@@ -418,7 +420,6 @@ img:after {
     top: 0.75rem;
     border-radius: 0.5rem;
     background-color: rgb(19,19,19);
-    transition: background-color 0.3s ease;
 }
 
 .option-toggle-circle {
@@ -433,8 +434,13 @@ img:after {
     transform: translateX(0);
     transition: transform 0.06s ease, background-color 0.06s ease;
     box-shadow: 0 0.1rem 0.2rem 0 rgba(0,0,0,0.3);
+
 }
 
+.option-toggle:hover .option-toggle-circle {
+    transition: transform 0.06s ease, background-color 0.15s ease;
+    background-color: rgb(120,120,120);
+}
 .option-toggle-cover {
     position: absolute;
     height: 0.75rem;
@@ -471,6 +477,11 @@ img:after {
     background-color: hsl(300,25%,45%);
 }
 
+.option-toggle[checked]:hover .option-toggle-circle {
+    background-color: hsl(300,25%,55%);
+}
+
+
 .option-toggle[checked] .option-toggle-trail {
     transform: translateX(0);
 }
@@ -484,10 +495,14 @@ img:after {
     height: 100%;
     padding-right: 0.25rem;
     padding-left: 0.5rem;
+    transition: background-color 0.15s ease;
 }
 
 .option-dropdown[active] {
     cursor: default;
+}
+
+.option-dropdown:hover:not([active]) {
     background-color: rgb(56,56,56);
 }
 
@@ -548,30 +563,28 @@ img:after {
     display:flex;
     align-items: center;
     height: 1.25rem;
-    padding-left: 0.75rem;
+    border-left: solid 0.25rem rgb(32,32,32);
+    padding-left: 0.5rem;
     padding-right: 0.75rem;
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
     cursor: pointer;
+    transition: border 0.15s ease, background-color 0.15s ease;
+}
+
+.option-dropdown-item:hover {
+    background-color: rgb(56,56,56);
 }
 
 .option-dropdown-items-bg:hover .option-dropdown-item[checked]:not(:hover) {
-    position: relative;
-    background-color: initial;
-    border: initial;
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    border-left: solid 0.25rem rgb(32,32,32);
 }
 
 .option-dropdown-item[checked], .option-dropdown-item:hover {
-    border: solid 0.0625rem hsl(300,25%,45%,1);
-    padding-left: 0.6875rem;
-    padding-right: 0.6875rem;
-    padding-top: 0.4375rem;
-    padding-bottom: 0.4375rem;
+    border-left: solid 0.25rem hsl(300,25%,45%,1);
 }
+
+
 .option-title {
     cursor: default;
 }
@@ -599,6 +612,7 @@ img:after {
     font-size: 0.9rem;
     height: 100%;
     color: rgb(160,160,160);
+    transition: outline 0.15s ease;
 
     background-color: initial;
     min-width: initial;

@@ -13,13 +13,10 @@
 - improve search by searching data
 - light/dark theme
 - specific search for grid item
-- use imgur as first-stage (uploads remaining)
 - minify everything
-- smooth load images when changing resolution
-- only fade in images if they are not already loaded
 - force reload of manifest on update
-- slide out sort options
-- fade in grid initial load animation only if longer than 0.1 seconds
+- prevent sidebar flicker on load
+- don't load resolution if a higher one exists
 */
 
 let itemData = []; //All folders.
@@ -126,6 +123,7 @@ function imgonload(event) {
     folder.gridItem.lastElementChild.style.backgroundColor = rgb;
     if (e.shadow !== undefined) {
         e.shadow.style.opacity = 0;
+        folder.currImg = e.src;
         e.shadow = undefined;
     }
     e.style.opacity = 1;
@@ -219,7 +217,7 @@ function calcItemWidth(itemCount) {
         let visibleRows = Math.ceil(visibleItems / gridItemsPerRow);
         pageHeight = (itemHeight * visibleRows) + ((1 * rem) * (visibleRows - 1));
         if (visibleItems < itemCount) {
-            pageHeight += (9 * rem);
+            pageHeight += (3 * rem);
         }
     } else {
         let fitWidth = (gridHeight - rem)*(16/9);
@@ -227,9 +225,9 @@ function calcItemWidth(itemCount) {
             fitWidth = gridWidth;
         }
         itemWidth = fitWidth;
-        itemHeight = (itemWidth/(16/9)) + rem;
+        itemHeight = ((itemWidth-4)/(16/9))+4;
         if (itemWidth <= thumbSizes[0].width) {
-            itemHeight += 42;
+            itemHeight += 34;
         }
         pageHeight = mainHeight;
     }
@@ -288,13 +286,27 @@ function resizeSource() {
             folder.gridItem.style.height = itemHeight + "px";
         }
         if (folder.images[folder.thumbnailIndex].imgurId !== undefined) {
-            imgurl = "https://i.imgur.com/" + folder.images[folder.thumbnailIndex].imgurId + curr.name + ".jpg";
+            folder.currImg = "https://i.imgur.com/" + folder.images[folder.thumbnailIndex].imgurId + curr.name + ".jpg";
         } else {
-            imgurl = folder.images[folder.thumbnailIndex][curr.backup];
+            folder.currImg = folder.images[folder.thumbnailIndex][curr.backup];
         }
 
-        if (folder.gridItem.lastElementChild.firstElementChild.src !== imgurl) {
-            folder.gridItem.lastElementChild.firstElementChild.src = imgurl;
+        if (folder.gridItem.lastElementChild.firstElementChild.src !== folder.currImg) {
+            let target = folder.gridItem.lastElementChild.firstElementChild;
+            if(target.src === "") {
+                target.src = folder.currImg;
+                if (target.complete) {
+                    target.style.opacity = 1;
+                }
+            } else {
+                let tempImg = new Image();
+                let f = folder;
+                tempImg.onload = function() {
+                    if (tempImg.src === f.currImg)
+                    target.src = f.currImg;
+                }
+                tempImg.src = f.currImg;
+            }
         }
     }
 }
@@ -388,7 +400,7 @@ function fillGrid(folders) {
         loadmore.style.display = "none";
     }
     if (gridFolders.length === 1) {
-        let widthDiff = parseFloat(grid.offsetWidth) - itemWidth;
+        let widthDiff = parseFloat(document.body.getBoundingClientRect().width - 15*rem - 6*rem) - itemWidth;
         gridFolders[0].gridItem.style.marginLeft = (widthDiff/2) + "px";
     }
     if (slideShowLoop !== undefined) {
@@ -521,14 +533,14 @@ function setupHooks() {
     mainHeight = document.documentElement.scrollHeight - (2.75 * rem) - (2 * rem);
     window.onresize = function() {
         rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-        mainHeight = main.offsetHeight - (2 * rem);
+        mainHeight = document.documentElement.scrollHeight - (2.75 * rem) - (2 * rem);
         calcItemWidth(gridFolders.length);
         calcViewer();
         if (gridFolders.length === 1) {
             for (let f of gridFolders) {
                 f.gridItem.style.marginLeft = null;
             }
-            let widthDiff = parseFloat(grid.offsetWidth) - itemWidth;
+            let widthDiff = parseFloat(document.body.getBoundingClientRect().width - 15*rem - 6*rem) - itemWidth;
             gridFolders[0].gridItem.style.marginLeft = (widthDiff/2) + "px";;
         }
         resizeSource();
@@ -762,6 +774,7 @@ function dropdownOpen(event) {
 async function galleryInit() {
     await window.preload;
     storeData(window.folders);
+    clearTimeout(window.spinAdd);
     document.getElementById("spinner").remove();
     searchEnabled = true;
     let s = getUrlParams("s");
@@ -773,11 +786,11 @@ async function galleryInit() {
 }
 
 function preloader() {
+    getScrollBarWidth();
     setupHooks();
     handleUrlArguments();
-    getScrollBarWidth();
 }
 
-document.addEventListener("DOMContentLoaded", galleryInit);
 preloader();
+document.addEventListener("DOMContentLoaded", galleryInit);
 
