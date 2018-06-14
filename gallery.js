@@ -520,16 +520,18 @@ function setOrder(string) {
     search(searchField.value);
 }
 
-function setupHooks() {
+function bindElements() {
     main = document.getElementsByClassName("main")[0];
     searchField = document.getElementsByClassName("search-field")[0];
     orderOption = document.getElementById("order-select");
     sortOption = document.getElementById("sort-select");
     filterSongDownload = document.getElementById("filtersong-select");
-
     explorerBox = document.getElementsByClassName("explorer-box")[0];
     grid = main.firstElementChild;
     loadmore = main.lastElementChild;
+}
+
+function setupHooks() {
     mainHeight = document.documentElement.scrollHeight - (2.75 * rem) - (2 * rem);
     window.onresize = function() {
         rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -557,6 +559,7 @@ function setupHooks() {
     searchField.oninput = function(e) {
         search(searchField.value);
     }
+    searchField.style.transition = "outline 0.15s ease";
 
     requestAnimationFrame(function(){
         filterSongDownload.removeAttribute("noanim");
@@ -769,6 +772,10 @@ function dropdownOpen(event) {
     event.stopPropagation();
 }
 
+function initUI() {
+
+}
+
 
 
 async function galleryInit() {
@@ -786,9 +793,10 @@ async function galleryInit() {
 }
 
 function preloader() {
+    bindElements();
+    handleUrlArguments();
     getScrollBarWidth();
     setupHooks();
-    handleUrlArguments();
 }
 
 preloader();

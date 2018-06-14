@@ -18,6 +18,9 @@
                 document.getElementById("spinner").style.opacity = 1;
             })
         })
+
+        //Setup UI
+        window.URL = decodeURIComponent(window.location.href.slice(window.location.href.indexOf("?")+1));
     </script>
     <link rel="stylesheet" type="text/css" href="gallery.css">
     <script type="text/javascript" src="gallery.js" defer></script>
@@ -35,6 +38,18 @@
                     <span class="option-title">Sort By</span>
                     <div id="sort-select" class="option-dropdown" onclick="dropdownOpen(event)">
                         <div  class="option-dropdown-selection" index="0"></div>
+                        <script>
+                            let setTo;
+                            let optList;
+                            if (window.URL.includes("sb=name")) {
+                                setTo = "Name";
+                                optList = ["A-Z", "Z-A"];
+                            } else {
+                                setTo = "Date";
+                                optList = ["Oldest", "Newest"];
+                            }
+                            document.getElementById("sort-select").firstElementChild.textContent = setTo;
+                        </script>
                         <div class="option-dropdown-arrow">&#x25bc;</div>
                         <div class="option-dropdown-itemcontainer">
                             <div class="option-dropdown-items">
@@ -51,6 +66,14 @@
                     <span class="option-title">Order</span>
                     <div id="order-select" class="option-dropdown" onclick="dropdownOpen(event)">
                         <div class="option-dropdown-selection" index="0"></div>
+                        <script>
+                            if (window.URL.includes("o=asc")) {
+                                setTo = optList[0];
+                            } else {
+                                setTo = optList[1];
+                            }
+                            document.getElementById("order-select").firstElementChild.textContent = setTo;
+                        </script>
                         <div class="option-dropdown-arrow">&#x25bc;</div>
                         <div class="option-dropdown-itemcontainer">
                             <div class="option-dropdown-items">
@@ -72,11 +95,19 @@
                         <div class="option-toggle-line"></div>
                     </div>
                 </div>
+                <div class="side-divider"></div>
                 <div class="explorer">
-                    <span class="explorer-title" >&nbsp;</span>
                     <div class="explorer-scrollview">
                         <div class="explorer-box">
                             <div class="explorer-box-placeholder">Select an item to view files</div>
+                            <div class="explorer-box-content">
+                                <div class="explorer-box-files-title">Files</div>
+                                <div class="explorer-box-files">
+                                </div>
+                                <div class="explorer-box-images-title">Images</div>
+                                <div class="explorer-box-images">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
