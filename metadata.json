@@ -15231,6 +15231,35 @@
                 }
             ],
             "songName": "Sia - Elastic Heart (Summertunez! Remix)"
+        },
+        {
+            "date": "2018-06-21T02:48:21.786Z",
+            "name": "Only Teardrops",
+            "images": [
+                {
+                    "name": "Only Teardrops.png",
+                    "dominantColor": {
+                        "r": 65,
+                        "g": 39,
+                        "b": 65
+                    },
+                    "downloadLarge": "https://srqdoa.am.files.1drv.com/y4mFBguSAr0iXBQ9p2K0K5m8Os7_2TL_MuHRdfRbzatEhv415Q_JqYj2hzY7XYdYVuIK8ABkM125WA-T4Jmq_Oi-XE1f3xMlmsdMzomflmRxqTZcV89tn0CFmSD6sypxEI1UjCnjCxz23zRWPcnaqumZlghhrVyWB7jb74Bpc487mvv_6bStULJxEQcG2JRO60Xc0el-r-EzM1AQD6jorhtDg?width=640&height=360&cropmode=center",
+                    "downloadMedium": "https://srqdoa.am.files.1drv.com/y4mFBguSAr0iXBQ9p2K0K5m8Os7_2TL_MuHRdfRbzatEhv415Q_JqYj2hzY7XYdYVuIK8ABkM125WA-T4Jmq_Oi-XE1f3xMlmsdMzomflmRxqTZcV89tn0CFmSD6sypxEI1UjCnjCxz23zRWPcnaqumZlghhrVyWB7jb74Bpc487mvv_6bStULJxEQcG2JRO60Xc0el-r-EzM1AQD6jorhtDg?width=320&height=180&cropmode=center",
+                    "imgurId": "Uij9PdP"
+                }
+            ],
+            "files": [
+                {
+                    "name": "Emmelie De Forest - Only Teardrops (Dee! & Kee Bootleg Mix) (Nightcore)).mp3"
+                },
+                {
+                    "name": "Emmelie De Forest - Only Teardrops (Dee! & Kee Bootleg Mix) (Video Edit)).mp3"
+                },
+                {
+                    "name": "Emmelie De Forest - Only Teardrops (Dee! & Kee Bootleg Mix).mp3"
+                }
+            ],
+            "songName": "Emmelie De Forest - Only Teardrops (Dee! & Kee Bootleg Mix) (Nightcore))"
         }
     ]
 }
