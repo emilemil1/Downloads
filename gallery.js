@@ -52,12 +52,16 @@ let loadmore;
 let loadedMore = false;
 let grid; //Grid element.
 let main; //Main element.
+let sidebar;
 let explorerBox;
 let sortOption;
 let searchField;
 let orderOption;
 let filterSongDownload;
 let scrollPos;
+let returnTitle;
+let returnButtonColor;
+let selectedItem;
 
 let rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
 
@@ -104,6 +108,56 @@ function createImgTemplate() {
     frag.childNodes[0].className = "gallery-image";
 
     return frag;
+}
+
+function resetSelectedItem() {
+    selectedItem.style.filter = "";
+    selectedItem = undefined;
+}
+
+function selectItem(event) {
+    if (selectedItem === event.currentTarget) {
+        closeExplorer();
+        return;
+    }
+
+    if (selectedItem !== undefined) {
+        resetSelectedItem();
+    }
+
+    sidebar.firstElementChild.style.left = "-100%";
+    selectedItem = event.currentTarget;
+    let folder = selectedItem.data;
+    returnTitle.textContent = folder.name;
+    returnButtonColor = RGBtoBrightness(folder.images[folder.thumbnailIndex].dominantColor, 52);
+    returnTitle.parentElement.style.backgroundColor = getRGB(returnButtonColor);
+    selectedItem.style.filter = "drop-shadow(0 0 0.4rem " + getRGB(RGBtoBrightness(folder.images[folder.thumbnailIndex].dominantColor, 220)) + ")";
+}
+
+function RGBtoBrightness(rgb, brightness) {
+    let multiplier = (brightness*3)/(rgb.r+rgb.g+rgb.b);
+    return {
+        r: rgb.r * multiplier,
+        g: rgb.g * multiplier,
+        b: rgb.b * multiplier
+    }
+}
+
+function closeExplorer() {
+    sidebar.firstElementChild.style.left = "0";
+    returnTitle.parentElement.style.backgroundColor = "rgb(26,26,26)";
+    resetSelectedItem();
+}
+
+function returnHover() {
+    let r = returnButtonColor.r + 25;
+    let g = returnButtonColor.g + 25;
+    let b = returnButtonColor.b + 25;
+    returnTitle.parentElement.children[1].style.backgroundColor = getRGB({r: r, g: g, b: b});
+}
+
+function returnHoverOff() {
+    returnTitle.parentElement.children[1].style.backgroundColor = "";
 }
 
 function imgonerror(event) {
@@ -526,9 +580,12 @@ function bindElements() {
     orderOption = document.getElementById("order-select");
     sortOption = document.getElementById("sort-select");
     filterSongDownload = document.getElementById("filtersong-select");
-    explorerBox = document.getElementsByClassName("explorer-box")[0];
+    explorerBoxFiles = document.getElementsByClassName("explorer-box-files")[0];
+    explorerBoxImages = document.getElementsByClassName("explorer-box-images")[0];
     grid = main.firstElementChild;
     loadmore = main.lastElementChild;
+    sidebar = document.getElementsByClassName("sidebar")[0];
+    returnTitle = document.getElementsByClassName("return-title")[0];
 }
 
 function setupHooks() {
@@ -537,7 +594,6 @@ function setupHooks() {
         rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
         mainHeight = document.documentElement.scrollHeight - (2.75 * rem) - (2 * rem);
         calcItemWidth(gridFolders.length);
-        calcViewer();
         if (gridFolders.length === 1) {
             for (let f of gridFolders) {
                 f.gridItem.style.marginLeft = null;
@@ -638,42 +694,6 @@ function handleUrlArguments() {
     }
 }
 
-function calcViewer() {
-    if (parseFloat(explorerBox.offsetHeight) <= explorerBox.parentNode.offsetHeight) {
-        if (parseFloat(explorerBox.style.height) * rem > explorerBox.parentNode.offsetHeight) {
-            requestAnimationFrame(monitorViewerScrollbarAdd);
-        } else {
-            requestAnimationFrame(monitorViewerScrollbarRemove);
-        }
-    } else {
-        if (parseFloat(explorerBox.style.height) * rem <= explorerBox.parentNode.offsetHeight) {
-            requestAnimationFrame(monitorViewerScrollbarRemove);
-        } else {
-            requestAnimationFrame(monitorViewerScrollbarAdd);
-        }
-    }
-}
-
-function monitorViewerScrollbarAdd() {
-    if (explorerBox.offsetHeight > explorerBox.parentNode.offsetHeight) {
-        if (explorerBox.parentNode.style.paddingRight !== "0px") {
-            explorerBox.parentNode.style.paddingRight = "0px";
-        }
-    } else {
-        requestAnimationFrame(monitorViewerScrollbarAdd);
-    }
-}
-
-function monitorViewerScrollbarRemove() {
-    if (explorerBox.offsetHeight <= explorerBox.parentNode.offsetHeight) {
-        if (explorerBox.parentNode.style.paddingRight !== "0.5rem") {
-            explorerBox.parentNode.style.paddingRight = "0.5rem";
-        }
-    } else {
-        requestAnimationFrame(monitorViewerScrollbarRemove);
-    }
-}
-
 function storeData(data) {
     let sourceFrag = createElementTemplate();
     let imgFrag = createImgTemplate();
@@ -705,6 +725,7 @@ function storeData(data) {
         }
 
         folder.gridItem = document.createElement('div');
+        folder.gridItem.onclick = selectItem;
         folder.gridItem.className = "grid-item";
         folder.gridItem.appendChild(gridItem);
         folder.gridItem.data = folder;
@@ -771,12 +792,6 @@ function dropdownOpen(event) {
     popups.push(event.currentTarget);
     event.stopPropagation();
 }
-
-function initUI() {
-
-}
-
-
 
 async function galleryInit() {
     await window.preload;
