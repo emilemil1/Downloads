@@ -160,6 +160,34 @@ function returnHoverOff() {
     returnTitle.parentElement.children[1].style.backgroundColor = "";
 }
 
+function hoverItem(event) {
+    let item = event.currentTarget;
+    let bar = item.firstElementChild.firstElementChild;
+    let frame = item.firstElementChild.lastElementChild;
+
+    let folder = item.data;
+    let newRGB = RGBtoBrightness(folder.images[folder.thumbnailIndex].dominantColor, 64);
+    let string = getRGB(newRGB);
+
+    bar.style.transition = "background-color 0s";
+    frame.style.transition = "background-color 0s";
+    bar.style.backgroundColor = string;
+    frame.style.backgroundColor = string
+}
+
+function hoverOffItem(event) {
+    let item = event.currentTarget;
+    let bar = item.firstElementChild.firstElementChild;
+    let frame = item.firstElementChild.lastElementChild;
+
+    let folder = item.data;
+    let oldRGB = folder.images[folder.thumbnailIndex].dominantColorDark;
+    let string = getRGB(oldRGB);
+
+    bar.style.backgroundColor = string;
+    frame.style.backgroundColor = string;
+}
+
 function imgonerror(event) {
     let e = event.currentTarget;
     let folder = e.parentElement.parentElement.data;
@@ -726,6 +754,8 @@ function storeData(data) {
 
         folder.gridItem = document.createElement('div');
         folder.gridItem.onclick = selectItem;
+        folder.gridItem.onmouseover = hoverItem;
+        folder.gridItem.onmouseout = hoverOffItem;
         folder.gridItem.className = "grid-item";
         folder.gridItem.appendChild(gridItem);
         folder.gridItem.data = folder;
