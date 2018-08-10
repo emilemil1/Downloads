@@ -7,6 +7,7 @@
     <script>
         //Fetch manifest
         window.preload = new Promise(function(resolve) {
+
             let request = new XMLHttpRequest();
             request.onload = (function(data) {
                 window.folders = JSON.parse(data.target.response).folders;
@@ -20,10 +21,61 @@
         })
 
         //Setup UI
-        window.URL = decodeURIComponent(window.location.href.slice(window.location.href.indexOf("?")+1));
+        window.url2 = decodeURIComponent(window.location.href.slice(window.location.href.indexOf("?")+1));
     </script>
-    <link rel="stylesheet" type="text/css" href="gallery.css">
     <script type="text/javascript" src="gallery.js" defer></script>
+    <style>
+        //Critical CSS
+        html {
+            background-color: rgb(12,12,12);
+        }
+
+        body {
+            background-color: #fff;
+            display: grid;
+            grid-template-areas:
+                "head head"
+                "side main";
+            grid-template-rows: 3rem 1fr;
+            grid-template-columns: 15rem 1fr;
+            height: 100vh;
+            max-height: 100vh;
+            margin: 0;
+        }
+
+        .header {
+            grid-area: head;
+            z-index: 3;
+            background-color: rgb(32,32,32);
+            box-shadow: 0 0.1vw 0.4vw 0 rgba(0,0,0,0.32);
+        }
+
+        .sidebar {
+            z-index: 2;
+            grid-area: side;
+            background-color: rgb(26,26,26);
+            box-shadow: 0.1rem 0 0.4rem 0 rgba(0,0,0,0.32);
+        }
+
+        .main {
+            padding: 1rem 3rem 1rem 3rem;
+            grid-area: main;
+            background-color: rgb(12,12,12);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+            grid-gap: 1rem;
+        }
+
+        .side-container, .cred, .gallery-image, .image-ui-container, #loadmore {
+            visibility: hidden;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="gallery.css" defer>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/solid.css" integrity="sha384-wnAC7ln+XN0UKdcPvJvtqIH3jOjs9pnKnq9qX68ImXvOGz2JuFoEiCjT8jyZQX2z" crossorigin="anonymous" defer>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/fontawesome.css" integrity="sha384-HbmWTHay9psM8qyzEKPc8odH4DsOuzdejtnr+OFtDmOcIVnhgReQ4GZBH7uwcjf6" crossorigin="anonymous" defer>
 </head>
 <body>
     <div class="corner"></div>
@@ -32,7 +84,7 @@
         <div class="side-container">
             <div class="side1">
                 <form class="search-form">
-                    <input class="search-field" placeholder="Search">
+                    <input class="search-field" placeholder="Search" onkeydown="if(event.keyCode==13)event.preventDefault();">
                 </form>
                 <div class="option">
                     <span class="option-title">Sort By</span>
@@ -41,7 +93,7 @@
                         <script>
                             let setTo;
                             let optList;
-                            if (window.URL.includes("sb=name")) {
+                            if (window.url2.includes("sb=name")) {
                                 setTo = "Name";
                                 optList = ["A-Z", "Z-A"];
                             } else {
@@ -67,7 +119,7 @@
                     <div id="order-select" class="option-dropdown" onclick="dropdownOpen(event)">
                         <div class="option-dropdown-selection" index="0"></div>
                         <script>
-                            if (window.URL.includes("o=asc")) {
+                            if (window.url2.includes("o=asc")) {
                                 setTo = optList[0];
                             } else {
                                 setTo = optList[1];
@@ -100,18 +152,24 @@
             <div class="side2">
                 <div class="side2-header">
                     <div class="return-title"></div>
-                    <div class="return" onmouseover="returnHover()" onmouseout="returnHoverOff()" onclick="closeExplorer()">X</div>
+                    <div class="return" onmouseover="returnHover()" onmouseout="returnHoverOff()" onclick="closeExplorer()"><i class="fas fa-times"></i></div>
                 </div>
                 <div class="explorer">
-                    <div class="explorer-box-files-title">Files</div>
-                    <div class="explorer-box-files">
-                        <div class="explorer-box-placeholder">Select an item to view files</div>
-                        <div class="explorer-box-content"></div>
+                    <div class="explorer-loading">
+                        <div class="spinner">
+                          <div class="cube1"></div>
+                          <div class="cube2"></div>
+                        </div>
                     </div>
-                    <div class="explorer-box-images-title">Images</div>
-                    <div class="explorer-box-images">
-                        <div class="explorer-box-placeholder">Select an item to view files</div>
-                        <div class="explorer-box-content"></div>
+                    <div class="explorer-loaded" onclick="closeHighlightIfOutsideHighlight(event)">
+                        <div class="explorer-box-files-title">Tracks</div>
+                        <div class="explorer-box-files">
+                            <div class="explorer-box-content"></div>
+                        </div>
+                        <div class="explorer-box-images-title">Images</div>
+                        <div class="explorer-box-images">
+                            <div class="explorer-box-content"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -121,17 +179,36 @@
             <span>emilemil1 | Nightcore 2018</span>
         </div>
     </div>
-    <div class="main">
-        <div class="grid"></div>
-        <div class="spinnerContainer" id="spinner">
-            <div class="spinner">
-                <div class="cube1"></div>
-                <div class="cube2"></div>
+    <div class="main-wrapper">
+        <div class="highlight" onclick="closeHighlightIfOutsideHighlight(event)">
+            <div class="highlight-load">Please wait...</div>
+            <div class="highlight-song-container">
+                <div class="highlight-song-overlay"></div>
+                <audio class="highlight-song" controls src="https://upload.wikimedia.org/wikipedia/en/5/50/Macarena_%28Bayside_Boys_Mix%29_sample.ogg" type="audio/ogg">
+                    Your browser does not support audio playback.
+                </audio>
+                <div class="audio-controls">
+                    <div class="audio-controls-play" onclick="playPause()" onmouseover="playHoverOn()" onmouseout="playHoverOff()"><i class="fas fa-play"></i></div>
+                    <div class="audio-controls-progress" onmousedown="onProgressBarClick(event)"><div></div></div>
+                </div>
+            </div>
+            <div class="highlight-image-container">
+                <div class="highlight-image-overlay"></div>
+                <img class="highlight-image" alt="highlight" src="">
             </div>
         </div>
-        <div id="loadmore" class="loadmore">
-            <div id="loadmore2" class="custom-checkbox">
-                <button id="loadmore-indicator" class="custom-checkbox-indicator">Show More</button>
+        <div class="main" onclick="closeSelection(event)">
+            <div class="grid"></div>
+            <div class="spinnerContainer" id="spinner">
+                <div class="spinner">
+                    <div class="cube1"></div>
+                    <div class="cube2"></div>
+                </div>
+            </div>
+            <div id="loadmore" class="loadmore">
+                <div id="loadmore2" class="custom-checkbox">
+                    <button id="loadmore-indicator" class="custom-checkbox-indicator">Show More</button>
+                </div>
             </div>
         </div>
     </div>
