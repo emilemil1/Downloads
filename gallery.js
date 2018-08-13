@@ -69,6 +69,9 @@ let highlight;
 let highlightImage;
 let highlightLoad;
 let highlightSong;
+let highlightSongType;
+let highlightSongTitle;
+let highlightSongDownload;
 let highlightSongContainer;
 let highlightImageContainer;
 let explorerSelected;
@@ -76,6 +79,8 @@ let highlightLoaded = false;
 let audioPlay;
 let audioProgress;
 let volume = 1;
+let audioTextElapsed;
+let audioTextTotal;
 
 let rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
 
@@ -164,7 +169,7 @@ function selectItem(event) {
 
 function loadExplorer(folder) {
     let temp = selectedItem;
-    let url = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/" + encodeURIComponent(folder.fullName) + ":/children";
+    let url = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/" + encodeURIComponent(folder.fullName) + ":/children?select=audio,file,@content.downloadUrl";
 
     explorerLoading.style.visibility = "visible";
 
@@ -175,10 +180,16 @@ function loadExplorer(folder) {
         }
         let f = [];
         let i = [];
+        let indi = 0;
+        let indf = 0;
         for (item of response.value) {
             if (item.file.mimeType.startsWith("audio")) {
+                item.name = selectedItem.data.files[indf].name;
+                indf++;
                 f.push(item);
             } else if (item.file.mimeType.startsWith("image")) {
+                item.name = selectedItem.data.images[indi].name;
+                indi++;
                 i.push(item);
             }
         }
@@ -283,8 +294,12 @@ function showHighlightSong() {
     highlightLoad.style.transition = "opacity 0s";
     highlightLoad.style.opacity = 0;
     highlightSongContainer.style.display = "flex";
-    highlightSong.style.display = "block";
     highlightLoaded = true;
+    if (highlightSongDownload.offsetHeight < highlightSongDownload.parentNode.offsetWidth) {
+        highlightSongDownload.style.fontSize = highlightSongDownload.offsetHeight * 0.9 + "px";
+    } else {
+        highlightSongDownload.style.fontSize = highlightSongDownload.parentNode.offsetWidth * 0.9 + "px";
+    }
     audioPlay.firstElementChild.className = "fas fa-play";
     clearInterval(highlightSong.progressMeter);
     audioReset(true);
@@ -323,14 +338,16 @@ function playHoverOff() {
 }
 
 function updateProgress() {
-    let width = Math.floor((highlightSong.currentTime / highlightSong.duration) * updateProgress.totalWidth);
+    let width = Math.round((highlightSong.currentTime / highlightSong.duration) * updateProgress.totalWidth);
     if (width !== updateProgress.currentWidth) {
         updateProgress.currentWidth = width
         audioProgress.firstElementChild.style.width = width + "px";
     }
     if (width === updateProgress.totalWidth) {
         clearInterval(highlightSong.progressMeter);
-        audioPlay.firstElementChild.className = "fas fa-pause";
+        audioPlay.firstElementChild.className = "fas fa-play";
+        audioProgress.firstElementChild.style.width = 0 + "px";
+
     } else if (highlightSong.currentTime === 0) {
         clearInterval(highlightSong.progressMeter);
     }
@@ -348,21 +365,37 @@ function audioReset(zero=false) {
 
 function audioJump(time) {
     highlightSong.currentTime = time;
-    audioProgress.firstElementChild.style.width = Math.floor((highlightSong.currentTime / highlightSong.duration) * updateProgress.totalWidth) + "px";
+    audioProgress.firstElementChild.style.width = Math.round((highlightSong.currentTime / highlightSong.duration) * updateProgress.totalWidth) + "px";
 }
 
 function onProgressBarClick(event) {
-    let w = event.offsetX;
-    let frac = w / updateProgress.totalWidth;
-    let time = highlightSong.duration * frac;
-    audioJump(time);
+    clearInterval(highlightSong.progressMeter);
+    let initX = event.clientX;
+    let initOffset = event.offsetX;
+    audioProgress.firstElementChild.style.width = initOffset + "px";
+    let f = function(event){
+        audioProgress.firstElementChild.style.width = Math.max(Math.min((event.clientX - initX + initOffset), updateProgress.totalWidth),0) + "px";
+        audioTextElapsed.textContent = secToTimeString(Math.round((parseInt(audioProgress.firstElementChild.style.width) / updateProgress.totalWidth) * highlightSong.duration));
+    };
+    window.addEventListener("mousemove", f);
+    window.addClickQueue(function() {
+        if (!highlightSong.paused) {
+            highlightSong.progressMeter = setInterval(updateProgress, 100);
+        }
+        window.removeEventListener("mousemove", f)
+        let frac = parseInt(audioProgress.firstElementChild.style.width) / updateProgress.totalWidth;
+        console.log(frac);
+        let time = highlightSong.duration * frac;
+        audioJump(time);
+    }, true);
+    event.stopPropagation();
 }
 
 function playPause() {
     if (audioPlay.firstElementChild.className === "fas fa-play") {
         audioReset();
         highlightSong.progressMeter = setInterval(updateProgress, 100);
-        if (highlightSong.currentTime === 0) {
+        if (highlightSong.currentTime === 0 || highlightSong.currentTime === highlightSong.duration) {
             highlightSong.volume = volume;
             highlightSong.play();
         } else {
@@ -389,7 +422,7 @@ function fadePlay() {
     highlightSong.play();
     let i = setInterval(function(){
         highlightSong.volume = easeInOutSine(time, startVolume, volumeChange, duration);
-        time += 0.01;
+        time += 0.02;
         if (time >= 1) {
             clearInterval(i);
         }
@@ -407,7 +440,7 @@ function fadePause() {
 
     let i = setInterval(function(){
         highlightSong.volume = easeInOutSine(time, startVolume, volumeChange, duration);
-        time += 0.01;
+        time += 0.02;
         if (time >= 1) {
             clearInterval(i);
             clearInterval(highlightSong.progressMeter);
@@ -421,6 +454,16 @@ function easeInOutSine (t, b, c, d) {
     return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
 }
 
+function highlightDownload() {
+    let e = document.createElement('a');
+    e.href = highlightSong.downloadUrl;
+    e.download = selectedItem.data.files[highlightSong.index].name;
+    e.style.display = "none";
+    document.body.appendChild(e);
+    e.click();
+    document.body.removeChild(e);
+}
+
 function explorerHighlight(folder, type, index) {
     main.style.filter = "blur(0.5rem) brightness(30%)";
     highlightLoaded = false;
@@ -431,14 +474,12 @@ function explorerHighlight(folder, type, index) {
         if (type === "file") {
             setTimeout(function(){
                 if (highlightLoaded === false) {
-                    highlightSong.style.display = "";
                     showHighlightLoad(true);
                 }
             }, 100)
         } else if (type === "image") {
             setTimeout(function(){
                 if (highlightLoaded === false) {
-                    highlightSong.style.display = "";
                     showHighlightLoad(true);
                 }
             }, 100)
@@ -489,11 +530,15 @@ function explorerHighlight(folder, type, index) {
         tempImg.src = exploreItemContent.images[index].url;
     } else if (type === "file") {
         audioProgress.firstElementChild.style.backgroundColor = getRGB(RGBtoBrightness(selectedItem.data.images[0].dominantColor, 64));
-        fetch(exploreItemContent.files[index].url).then(function(response){
+        fetch(exploreItemContent.files[index].url,{mode: "cors"}).then(function(response){
             return response.blob();
         }).then(function(data){
             highlightSong.src = URL.createObjectURL(data);
             highlightSong.type = exploreItemContent.files[index].type;
+            highlightSongType.textContent = exploreItemContent.files[index].short;
+            highlightSongTitle.textContent = folder.songName;
+            highlightSong.downloadUrl = exploreItemContent.files[index].url;
+            highlightSong.index = index;
             showHighlightSong();
         });
     }
@@ -1151,6 +1196,11 @@ function bindElements() {
     highlightSongContainer = document.getElementsByClassName("highlight-song-container")[0];
     audioPlay = document.getElementsByClassName("audio-controls-play")[0];
     audioProgress = document.getElementsByClassName("audio-controls-progress")[0];
+    audioTextElapsed = document.getElementsByClassName("audio-controls-progress-elapsed")[0];
+    audioTextTotal = document.getElementsByClassName("audio-controls-progress-total")[0];
+    highlightSongType = document.getElementsByClassName("highlight-song-overlay-type")[0];
+    highlightSongTitle = document.getElementsByClassName("highlight-song-overlay-title")[0];
+    highlightSongDownload = document.getElementsByClassName("highlight-song-overlay-download")[0];
 }
 
 function setupHooks() {
@@ -1161,6 +1211,13 @@ function setupHooks() {
         calcItemWidth(searchFolders.length);
         resizeSource();
         audioReset();
+        if (highlightSongContainer.style.display === "flex") {
+            if (highlightSongDownload.offsetHeight < highlightSongDownload.parentNode.offsetWidth) {
+                highlightSongDownload.style.fontSize = highlightSongDownload.offsetHeight * 0.9 + "px";
+            } else {
+                highlightSongDownload.style.fontSize = highlightSongDownload.parentNode.offsetWidth * 0.9 + "px";
+            }
+        }
     };
 
     loadmore.firstElementChild.firstElementChild.onclick = function() {
@@ -1180,7 +1237,49 @@ function setupHooks() {
         filterSongDownload.removeAttribute("noanim");
     })
 
-    window.onclick = clearPopups.bind(this, false);
+    window.clickQueue = [];
+
+    window.onmouseup = function() {
+        for (let i = clickQueue.length - 1; i >= 0; i--) {
+            clickQueue[i].func();
+            if (clickQueue[i].once === true) {
+                clickQueue.splice(i, 1);
+            }
+        }
+    }
+
+    window.addClickQueue = function(func, once="false") {
+        window.clickQueue.push({func: func, once: once})
+    }
+
+    window.removeClickQueue = function(func) {
+        for (let i = clickQueue.length - 1; i >= 0; i--) {
+            if (clickQueue[i].func === func) {
+                clickQueue.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    window.addClickQueue(clearPopups.bind(this, false));
+
+    highlightSong.ontimeupdate = function(event) {
+        audioTextElapsed.textContent = secToTimeString(Math.round(highlightSong.currentTime));
+    }
+    highlightSong.onloadedmetadata = function(event) {
+        audioTextTotal.textContent = secToTimeString(Math.round(highlightSong.duration));
+    }
+}
+
+function secToTimeString(sec) {
+    let min = Math.floor(sec / 60);
+    sec = sec % 60;
+
+    if (sec < 10) {
+        sec = "0" + sec;
+    }
+
+    return min + ":" + sec;
 }
 
 function clearPopups(newPopupSoon) {

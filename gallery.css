@@ -106,7 +106,7 @@ body {
     justify-content: center;
     font-size: 2rem;
     width: 3.5rem;
-    height: 3.5rem;
+    height: 100%;
     background-color: rgb(64,64,64);
     box-shadow: 0 0.1rem 0.1rem 0 rgba(0,0,0,0.32), 0 0 0 0.05rem rgba(0,0,0,0.08);
     margin-right: 0.250rem;
@@ -118,13 +118,45 @@ body {
 .audio-controls-progress {
     box-shadow: 0 0.1rem 0.1rem 0 rgba(0,0,0,0.32), 0 0 0 0.05rem rgba(0,0,0,0.08);
     background-color: rgb(48,48,48);
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
     height: 100%;
     flex-grow: 1;
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr;
 }
 
-.audio-controls-progress div {
+.audio-controls-progress-bar {
+    grid-row: 1;
+    grid-column: 1;
     height: 100%;
     width: 0%;
+}
+
+.audio-controls-progress-elapsed {
+    grid-row: 1;
+    grid-column: 1;
+    align-self: center;
+    justify-self: flex-start;
+    width: fit-content;
+    margin-left: 0.75rem;
+    font-size: 1.1rem;
+    user-select: none;
+    pointer-events: none;
+}
+
+.audio-controls-progress-total {
+    grid-row: 1;
+    grid-column: 1;
+    align-self: center;
+    justify-self: flex-end;
+    width: fit-content;
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+    user-select: none;
+    pointer-events: none;
 }
 
 .highlight {
@@ -152,7 +184,6 @@ body {
     grid-template-rows: 1fr;
     grid-template-columns: 1fr;
     max-width: 100%;
-    max-height: 100%;
     height: fit-content;
     align-self: center;
     justify-self: center;
@@ -165,8 +196,9 @@ body {
     display: none;
     flex-direction: column;
     box-sizing: border-box;
-    height: 100%;
-    width: calc((100vh - 9rem) * (16/9) - 0.25rem);
+    height: 28rem;
+    max-height: 100%;
+    width: calc(28rem * (16/9) - 0.25rem);
     align-self: center;
     justify-self: center;
     border: 0.125rem solid rgb(64,64,64);
@@ -184,18 +216,7 @@ body {
 }
 
 .highlight-song {
-    max-width: 100%;
-    max-height: calc(100vh - 9rem);
-    object-fit: scale-down;
-    box-sizing: border-box;
-    margin-bottom: 1rem;
-    width: 80%;
-    grid-row: 1;
-    grid-column: 1;
     display: none;
-    align-self: end;
-    justify-self: center;
-    visibility: hidden;
 }
 
 .highlight-load {
@@ -205,18 +226,16 @@ body {
     border: 0.125rem solid rgba(220,220,220,0.3);
     grid-row: 1;
     grid-column: 1;
-    z-index: 1;
+    z-index: 100;
     opacity: 1;
     transition: opacity 0s;
     align-self: center;
     justify-self: center;
+    pointer-events: none;
+    user-select: none;
 }
 
 .highlight-image-container:hover .highlight-image-overlay {
-    opacity: 1;
-}
-
-.highlight-song-container:hover .highlight-image-overlay {
     opacity: 1;
 }
 
@@ -237,6 +256,43 @@ body {
     width: 100%;
     flex-grow: 1;
     z-index: 1;
+    color: rgba(220,220,220,0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-height: 100%;
+    margin-bottom: 2rem;
+}
+
+.highlight-song-overlay-title {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.highlight-song-overlay-type {
+    margin-top: 2rem;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+    user-select: none;
+}
+
+.highlight-song-overlay-download {
+    flex-grow: 1;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: rgb(48,48,48);
+    transition: color 0.15s;
+}
+
+.highlight-song-overlay-download:hover {
+    color: rgba(220,220,220,0.4);
 }
 
 .main-wrapper {

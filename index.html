@@ -180,16 +180,20 @@
         </div>
     </div>
     <div class="main-wrapper">
-        <div class="highlight" onclick="closeHighlightIfOutsideHighlight(event)">
+        <div class="highlight" onmousedown="closeHighlightIfOutsideHighlight(event)">
             <div class="highlight-load">Please wait...</div>
             <div class="highlight-song-container">
-                <div class="highlight-song-overlay"></div>
+                <div class="highlight-song-overlay">
+                    <div class="highlight-song-overlay-type"></div>
+                    <div class="highlight-song-overlay-title"></div>
+                    <div class="highlight-song-overlay-download" onclick="highlightDownload()"><i class="fas fa-download"></i></div>
+                </div>
                 <audio class="highlight-song" controls src="https://upload.wikimedia.org/wikipedia/en/5/50/Macarena_%28Bayside_Boys_Mix%29_sample.ogg" type="audio/ogg">
                     Your browser does not support audio playback.
                 </audio>
                 <div class="audio-controls">
                     <div class="audio-controls-play" onclick="playPause()" onmouseover="playHoverOn()" onmouseout="playHoverOff()"><i class="fas fa-play"></i></div>
-                    <div class="audio-controls-progress" onmousedown="onProgressBarClick(event)"><div></div></div>
+                    <div class="audio-controls-progress" onmousedown="onProgressBarClick(event)"><div class="audio-controls-progress-bar"></div><div class="audio-controls-progress-elapsed">0:00</div><div class="audio-controls-progress-total">3:15</div></div>
                 </div>
             </div>
             <div class="highlight-image-container">
