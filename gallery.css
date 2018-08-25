@@ -1048,7 +1048,6 @@ img:after {
     cursor: default;
     grid-column: 1 / -1;
     color: var(--subtle-text-color);
-    margin-top: 0.8rem;
     margin-bottom: 1rem;
     display: flex;
     flex-direction: column;
