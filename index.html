@@ -30,7 +30,6 @@
     </script>
     <script type="text/javascript" src="gallery.min.js" defer></script>
     <style>
-        //Critical CSS
         body {
             background-color: #fff;
             display: grid;
@@ -53,8 +52,40 @@
             background-color: rgb(32,32,32);
             box-shadow: 0 0.1vw 0.4vw 0 rgba(0,0,0,0.32);
             position: relative;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-size: 1.5rem;
+            padding-left: 18.5rem;
+            padding-right: 3.5rem;
+            color: white;
         }
 
+        .navigation {
+            align-self: center;
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            font-size: 1.125rem;
+            color: white;
+        }
+        .navigation a {
+            color: inherit;
+            text-decoration: none;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            align-items: center;
+            display: flex;
+        }
+        .icons {
+            width: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .navigation a[active] {
+            background: rgb(12,12,12);
+        }
         .sidebar {
             z-index: 2;
             grid-area: side;
@@ -84,6 +115,16 @@
             grid-gap: 1rem;
         }
 
+        .sixteenbynine {
+            padding-top: 56.25%;
+            height: 0;
+            position: relative;
+        }
+
+        .gallery-image {
+            visibility: hidden;
+        }
+
         .side-container, .cred, .gallery-image, .image-ui-container, #loadmore {
             visibility: hidden;
         }
@@ -94,6 +135,10 @@
             height: 100px;
             position: absolute;
             top: -9999px;
+        }
+
+        .highlight {
+            display: none;
         }
     </style>
     <link rel="stylesheet" type="text/css" href="gallery.min.css" async>

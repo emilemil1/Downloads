@@ -96,6 +96,10 @@ p {
     height: 100%;
 }
 
+.icons {
+    width: 2rem;
+}
+
 .navigation a[active] {
     background-color: var(--darkest-bg);
     color: var(--highlight-icon-color);

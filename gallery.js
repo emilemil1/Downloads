@@ -32,8 +32,8 @@ let orderBy = "descending"; //sorting order
 let filterSong = false; //only display folders with a song download
 
 const thumbSizes = [
-    {name: "m", width: 320, size: "thumbnails/0/c320x180_Crop/content"},
-    {name: "l", width: 640, size: "thumbnails/0/c360x640_Crop/content"},
+    {name: "m", width: 320, size: ":/thumbnails/0/c320x180_Crop/content"},
+    {name: "l", width: 640, size: ":/thumbnails/0/c360x640_Crop/content"},
     {name: "", width: 1600, size: "/content"}
 ];
 let curr;
