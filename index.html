@@ -7,40 +7,44 @@
     <script>
         //Fetch manifest
         window.preload = new Promise(function(resolve) {
-
-            let request = new XMLHttpRequest();
-            request.onload = (function(data) {
-                window.folders = JSON.parse(data.target.response).folders;
+            fetch("metadata.json",{method: "get", cache: "no-cache"}).then(function(data) {
+                return data.json();
+            })
+            .then(function(json) {
+                window.folders = json.folders;
                 resolve("loaded");
             });
-            request.open("get", "metadata.json", true);
-            request.send();
             window.spinAdd = setTimeout(100, function() {
                 document.getElementById("spinner").style.opacity = 1;
-            })
-        })
+            });
+        });
 
         //Setup UI
         window.url2 = decodeURIComponent(window.location.href.slice(window.location.href.indexOf("?")+1));
+
+        //Get rem
+        window.rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+
+        //Get mainGeight
+        window.mainHeight = document.documentElement.scrollHeight - (3 * rem) - (2 * rem);
     </script>
-    <script type="text/javascript" src="gallery.js" defer></script>
+    <script type="text/javascript" src="gallery.min.js" defer></script>
     <style>
         //Critical CSS
-        html {
-            background-color: rgb(12,12,12);
-        }
-
         body {
             background-color: #fff;
             display: grid;
             grid-template-areas:
                 "head head"
                 "side main";
-            grid-template-rows: 3rem 1fr;
+            grid-template-rows: 3.5rem 1fr;
             grid-template-columns: 15rem 1fr;
             height: 100vh;
             max-height: 100vh;
             margin: 0;
+            background-color: rgb(12,12,12);
+            font-size: 0.875rem;
+            font-family: 'Roboto', sans-serif;
         }
 
         .header {
@@ -48,6 +52,7 @@
             z-index: 3;
             background-color: rgb(32,32,32);
             box-shadow: 0 0.1vw 0.4vw 0 rgba(0,0,0,0.32);
+            position: relative;
         }
 
         .sidebar {
@@ -55,12 +60,22 @@
             grid-area: side;
             background-color: rgb(26,26,26);
             box-shadow: 0.1rem 0 0.4rem 0 rgba(0,0,0,0.32);
+            position: relative;
         }
 
         .main {
             padding: 1rem 3rem 1rem 3rem;
-            grid-area: main;
+            grid-row: 1;
+            grid-column: 1;
             background-color: rgb(12,12,12);
+        }
+
+        .main-wrapper {
+            grid-area: main;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
         }
 
         .grid {
@@ -72,23 +87,74 @@
         .side-container, .cred, .gallery-image, .image-ui-container, #loadmore {
             visibility: hidden;
         }
+
+        .scrollbar-measure {
+            overflow-y: scroll;
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            top: -9999px;
+        }
     </style>
-    <link rel="stylesheet" type="text/css" href="gallery.css" defer>
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/solid.css" integrity="sha384-wnAC7ln+XN0UKdcPvJvtqIH3jOjs9pnKnq9qX68ImXvOGz2JuFoEiCjT8jyZQX2z" crossorigin="anonymous" defer>
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/fontawesome.css" integrity="sha384-HbmWTHay9psM8qyzEKPc8odH4DsOuzdejtnr+OFtDmOcIVnhgReQ4GZBH7uwcjf6" crossorigin="anonymous" defer>
+    <link rel="stylesheet" type="text/css" href="gallery.min.css" async>
+    <link rel="stylesheet" href="./FontAwesome/css/solid.min.css" async>
+    <link rel="stylesheet" href="./FontAwesome/css/brands.min.css" async>
+    <link rel="stylesheet" href="./FontAwesome/css/fontawesome.min.css" async>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,500" async>
+    <link rel="apple-touch-icon" sizes="57x57" href="./favicon/apple-icon-57x57.png" async>
+    <link rel="apple-touch-icon" sizes="60x60" href="./favicon/apple-icon-60x60.png" async>
+    <link rel="apple-touch-icon" sizes="72x72" href="./favicon/apple-icon-72x72.png" async>
+    <link rel="apple-touch-icon" sizes="76x76" href="./favicon/apple-icon-76x76.png" async>
+    <link rel="apple-touch-icon" sizes="114x114" href="./favicon/apple-icon-114x114.png" async>
+    <link rel="apple-touch-icon" sizes="120x120" href="./favicon/apple-icon-120x120.png" async>
+    <link rel="apple-touch-icon" sizes="144x144" href="./favicon/apple-icon-144x144.png" async>
+    <link rel="apple-touch-icon" sizes="152x152" href="./favicon/apple-icon-152x152.png" async>
+    <link rel="apple-touch-icon" sizes="180x180" href="./favicon/apple-icon-180x180.png" async>
+    <link rel="icon" type="image/png" sizes="192x192"  href="./favicon/android-icon-192x192.png" async>
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon/favicon-32x32.png" async>
+    <link rel="icon" type="image/png" sizes="96x96" href="./favicon/favicon-96x96.png" async>
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon/favicon-16x16.png" async>
+    <link rel="manifest" href="./favicon/manifest.json" async>
+    <meta name="msapplication-TileColor" content="#ffffff" async>
+    <meta name="msapplication-TileImage" content="./favicon/ms-icon-144x144.png" async>
+    <meta name="theme-color" content="#ffffff" async>
 </head>
 <body>
-    <div class="corner"></div>
-    <div class="header"></div>
+    <div class="header">
+        <div class="navigation">
+            <a class="gallery-nav" href="../Downloads/" active><p>Downloads</p></a>
+            <a class="info-nav" href="../Information/"><p>Information</p></a>
+        </div>
+        <div class="icons">
+            <a class="youtube-link" href="https://www.youtube.com/emilemil1" title="YouTube"><i class="fab fa-youtube"></i></a>
+        </div>
+    </div>
     <div class="sidebar">
         <div class="side-container">
+            <script>
+                if (window.url2.includes("s=")) {
+                    let i = window.url2.indexOf("s=")+2;
+                    let endIndex = window.url2.indexOf("&", i);
+                    let numbers;
+                    if (endIndex === -1) {
+                        numbers = window.url2.substring(i);
+                    } else {
+                        numbers = window.url2.substring(i, endIndex);
+                    }
+                    if (!isNaN(numbers) && numbers !== "") {
+                        let e = document.getElementsByClassName("side-container")[0];
+                        e.style.transition = "transform 0s";
+                        e.style.transform = "translateX(-50%)";
+                    }
+                }
+            </script>
             <div class="side1">
                 <form class="search-form">
                     <input class="search-field" placeholder="Search" onkeydown="if(event.keyCode==13)event.preventDefault();">
                 </form>
                 <div class="option">
                     <span class="option-title">Sort By</span>
-                    <div id="sort-select" class="option-dropdown" onclick="dropdownOpen(event)">
+                    <div id="sort-select" class="option-dropdown">
                         <div  class="option-dropdown-selection" index="0"></div>
                         <script>
                             let setTo;
@@ -102,13 +168,13 @@
                             }
                             document.getElementById("sort-select").firstElementChild.textContent = setTo;
                         </script>
-                        <div class="option-dropdown-arrow">&#x25bc;</div>
+                        <div class="option-dropdown-arrow"><i class="fas fa-caret-down"></i></div>
                         <div class="option-dropdown-itemcontainer">
                             <div class="option-dropdown-items">
                                 <div class="option-dropdown-shadowblocker"></div>
                                 <div class="option-dropdown-items-bg">
-                                    <div onclick=dropdownSelect(event) class="option-dropdown-item" value="Date">Date</div>
-                                    <div onclick=dropdownSelect(event) class="option-dropdown-item" value="Name">Name</div>
+                                    <div class="option-dropdown-item" value="Date">Date</div>
+                                    <div class="option-dropdown-item" value="Name">Name</div>
                                 </div>
                             </div>
                         </div>
@@ -116,7 +182,7 @@
                 </div>
                 <div class="option">
                     <span class="option-title">Order</span>
-                    <div id="order-select" class="option-dropdown" onclick="dropdownOpen(event)">
+                    <div id="order-select" class="option-dropdown">
                         <div class="option-dropdown-selection" index="0"></div>
                         <script>
                             if (window.url2.includes("o=asc")) {
@@ -126,13 +192,13 @@
                             }
                             document.getElementById("order-select").firstElementChild.textContent = setTo;
                         </script>
-                        <div class="option-dropdown-arrow">&#x25bc;</div>
+                        <div class="option-dropdown-arrow"><i class="fas fa-caret-down"></i></div>
                         <div class="option-dropdown-itemcontainer">
                             <div class="option-dropdown-items">
                                 <div class="option-dropdown-shadowblocker"></div>
                                 <div class="option-dropdown-items-bg">
-                                    <div onclick=dropdownSelect(event) class="option-dropdown-item" value="Descending">Newest</div>
-                                    <div onclick=dropdownSelect(event) class="option-dropdown-item" value="Ascending">Oldest</div>
+                                    <div class="option-dropdown-item" value="Descending">Newest</div>
+                                    <div class="option-dropdown-item" value="Ascending">Oldest</div>
                                 </div>
                             </div>
                         </div>
@@ -140,7 +206,7 @@
                 </div>
                 <div class="option">
                     <span class="option-title">Song Download</span>
-                    <div id="filtersong-select" class="option-toggle" noanim onclick=toggle(event)>
+                    <div id="filtersong-select" class="option-toggle" noanim>
                         <div class="option-toggle-circle"></div>
                         <div class="option-toggle-cover"></div>
                         <div class="option-toggle-trail"></div>
@@ -152,7 +218,7 @@
             <div class="side2">
                 <div class="side2-header">
                     <div class="return-title"></div>
-                    <div class="return" onmouseover="returnHover()" onmouseout="returnHoverOff()" onclick="closeExplorer()"><i class="fas fa-times"></i></div>
+                    <div class="return"><i class="fas fa-times"></i></div>
                 </div>
                 <div class="explorer">
                     <div class="explorer-loading">
@@ -161,12 +227,12 @@
                           <div class="cube2"></div>
                         </div>
                     </div>
-                    <div class="explorer-loaded" onclick="closeHighlightIfOutsideHighlight(event)">
-                        <div class="explorer-box-files-title">Tracks</div>
+                    <div class="explorer-loaded">
+                        <div class="explorer-box-files-title">TRACKS</div>
                         <div class="explorer-box-files">
                             <div class="explorer-box-content"></div>
                         </div>
-                        <div class="explorer-box-images-title">Images</div>
+                        <div class="explorer-box-images-title">IMAGES</div>
                         <div class="explorer-box-images">
                             <div class="explorer-box-content"></div>
                         </div>
@@ -180,28 +246,43 @@
         </div>
     </div>
     <div class="main-wrapper">
-        <div class="highlight" onmousedown="closeHighlightIfOutsideHighlight(event)">
+        <div class="highlight">
             <div class="highlight-load">Please wait...</div>
-            <div class="highlight-song-container">
-                <div class="highlight-song-overlay">
-                    <div class="highlight-song-overlay-type"></div>
-                    <div class="highlight-song-overlay-title"></div>
-                    <div class="highlight-song-overlay-download" onclick="highlightDownload()"><i class="fas fa-download"></i></div>
-                </div>
-                <audio class="highlight-song" controls src="https://upload.wikimedia.org/wikipedia/en/5/50/Macarena_%28Bayside_Boys_Mix%29_sample.ogg" type="audio/ogg">
-                    Your browser does not support audio playback.
-                </audio>
-                <div class="audio-controls">
-                    <div class="audio-controls-play" onclick="playPause()" onmouseover="playHoverOn()" onmouseout="playHoverOff()"><i class="fas fa-play"></i></div>
-                    <div class="audio-controls-progress" onmousedown="onProgressBarClick(event)"><div class="audio-controls-progress-bar"></div><div class="audio-controls-progress-elapsed">0:00</div><div class="audio-controls-progress-total">3:15</div></div>
+            <div class="highlight-song-resize">
+                <div class="highlight-song-container">
+                    <div class="highlight-song-overlay">
+                        <div class="highlight-song-overlay-type"></div>
+                        <div class="highlight-song-overlay-title"></div>
+                        <div class="highlight-song-overlay-download" title="Download Track"><i class="fas fa-download"></i></div>
+                    </div>
+                    <audio class="highlight-song" controls src="" type="audio/ogg">
+                        Your browser does not support audio playback.
+                    </audio>
+                    <div class="audio-controls">
+                        <div class="audio-controls-play"><i class="fas fa-play"></i></div>
+                        <div class="audio-controls-progress"><div class="audio-controls-progress-bar"></div><div class="audio-controls-progress-elapsed">0:00</div><div class="audio-controls-progress-total">0:00</div></div>
+                        <div class="audio-controls-volume">
+                            <i class="fas fa-volume-up"></i>
+                            <div class="audio-controls-volume-text">50%</div>
+                            <div class="audio-controls-volume-sliderbg">
+                                <div class="audio-controls-volume-sliderfilled"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
             <div class="highlight-image-container">
-                <div class="highlight-image-overlay"></div>
+                <div class="highlight-image-overlay-container">
+                    <div class="highlight-image-overlay-falloff"></div>
+                    <div class="highlight-image-overlay">
+                        <div class="highlight-image-overlay-download" title="Download Image"><i class="fas fa-download"></i></div>
+                    </div>
+                </div>
                 <img class="highlight-image" alt="highlight" src="">
             </div>
         </div>
-        <div class="main" onclick="closeSelection(event)">
+        <div class="main">
             <div class="grid"></div>
             <div class="spinnerContainer" id="spinner">
                 <div class="spinner">
@@ -219,4 +300,20 @@
     <div class="preloadImgs" style="display:none">
     </div>
 </body>
+    <script>
+        //Get scrollBarWidth
+        let scrollDiv = document.createElement('div');
+        scrollDiv.className = "scrollbar-measure";
+        document.body.appendChild(scrollDiv);
+
+        scrollBarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
+        document.body.removeChild(scrollDiv);
+        if (scrollBarWidth === 0) {
+            if ('WebkitAppearance' in document.documentElement.style) {
+                scrollBarWidth = 8;
+            } else {
+                scrollBarWidth = 17;
+            }
+        }
+    </script>
 </html>
