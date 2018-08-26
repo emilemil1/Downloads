@@ -1367,8 +1367,9 @@ function volumeSliderClick(event) {
     event.stopPropagation();
 }
 
-function setVolume(volume) {
-    highlightSong.volume = volume;
+function setVolume(v) {
+    volume = v;
+    highlightSong.volume = v;
     volumeText.textContent = Math.round(highlightSong.volume * 100) + "%";
     volumeSlider.firstElementChild.style.height = (highlightSong.volume * 100) + "%";
     if (volume > 0.35) {
