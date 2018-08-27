@@ -18,6 +18,8 @@ let gridFolders = []; //Visible folders that match the current search.
 let searchFolders = []; //All folders that match the current search.
 let slideShowGridItems = []; //Visible folders that contain multiple images.
 let slideShowLoop;
+let slideShowLoaded = -1;
+let slideShowLoadedGroup = [];
 let popups = [];
 let exploreItemContent;
 
@@ -37,18 +39,14 @@ const thumbSizes = [
     {name: "", width: 1600, size: "/content"}
 ];
 let curr;
-let itemWidth;
-let itemHeight;
 
 let searchEnabled = false; //Enables and disables search.
 let pageSize = 10;
 let firstPageSize = 1;
 let scrollbarExists = false;
-let pageHeight;
 let gridItemsPerRow = 1;
 
 let loadmore;
-let loadedMore = false;
 let grid; //Grid element.
 let main; //Main element.
 let sidebar;
@@ -63,7 +61,6 @@ let filterSongDownload;
 let scrollPos;
 let returnTitle;
 let selectedItem;
-let hoverTile;
 let highlight;
 let highlightImage;
 let highlightLoad;
@@ -85,6 +82,7 @@ let audioTextStopUpdate = false;
 let clipPathSupported = true;
 let volumeText;
 let autoExplore = false;
+let ItemWidth;
 
 let mainHeight = window.mainHeight;
 let rem = window.rem;
@@ -108,17 +106,12 @@ function createElementTemplate() {
 
     frag.appendChild(document.createElement('div'));
     frag.appendChild(document.createElement('div'));
-    frag.childNodes[0].className = "image-ui-container";
+    frag.childNodes[0].className = "image-bar";
     frag.childNodes[1].className = "sixteenbynine";
     let item = frag.childNodes[1];
     item.appendChild(document.createElement('img'));
     item.childNodes[0].className = "gallery-image";
     item = frag.childNodes[0];
-    item.appendChild(document.createElement('div'));
-    item.appendChild(document.createElement('div'));
-    item.childNodes[0].className = "image-bar";
-    item.childNodes[1].className = "image-frame";
-    item = item.childNodes[0];
     item.appendChild(document.createElement('span'));
     item.childNodes[0].className = "image-title";
 
@@ -135,7 +128,7 @@ function createImgTemplate() {
 }
 
 function resetSelectedItem() {
-    selectedItem.style.filter = "";
+    selectedItem.lastElementChild.style.filter = "";
     selectedItem = undefined;
 }
 
@@ -168,7 +161,7 @@ function selectItem(event) {
     sidebar.firstElementChild.style.transform = "translateX(-50%)";
     returnTitle.textContent = folder.name;
     returnTitle.parentElement.style.backgroundColor = getRGB(RGBtoBrightness(folder.images[folder.thumbnailIndex].dominantColor, 52));
-    selectedItem.style.filter = "drop-shadow(0 0 0.4rem " + getRGB(RGBtoBrightness(folder.images[folder.thumbnailIndex].dominantColor, 220)) + ")";
+    selectedItem.lastElementChild.style.filter = "drop-shadow(0 0 0.4rem " + getRGB(RGBtoBrightness(folder.images[folder.thumbnailIndex].dominantColor, 220)) + ")";
 
     setUrl(getIndex(event.currentTarget.data));
 }
@@ -187,6 +180,9 @@ function loadExplorer(folder) {
     explorerLoading.style.visibility = "visible";
 
     fetch(url).then(response => response.json()).then(function(response) {
+        if(selectedItem === undefined) {
+            return;
+        }
         exploreItemContent = {
             files: [],
             images: []
@@ -678,59 +674,6 @@ function closeExplorer() {
     setUrl(search.prevSearch);
 }
 
-function hoverItem(event) {
-    hoverTile = event.currentTarget;
-    let item = event.currentTarget;
-    let bar = item.firstElementChild.firstElementChild;
-    let frame = item.firstElementChild.lastElementChild;
-
-    let folder = item.data;
-    let newRGB = RGBtoBrightness(folder.images[folder.thumbnailIndex].dominantColor, 64);
-    let string = getRGB(newRGB);
-
-    let f = function() {
-        bar.style.transition = "background-color 2s";
-        frame.style.transition = "background-color 2s";
-        bar.removeEventListener("transitionend", f);
-    };
-
-    bar.addEventListener("transitionend", f);
-
-    bar.style.transition = "background-color 0.15s";
-    frame.style.transition = "background-color 0.15s";
-    bar.style.backgroundColor = string;
-    frame.style.backgroundColor = string;
-}
-
-function hoverOffItem(event) {
-    if (hoverTile === event.currentTarget) {
-        hoverTile = undefined;
-    }
-
-    let item = event.currentTarget;
-    let bar = item.firstElementChild.firstElementChild;
-    let frame = item.firstElementChild.lastElementChild;
-
-    let folder = item.data;
-    let oldRGB = folder.images[folder.thumbnailIndex].dominantColorDark;
-    let string = getRGB(oldRGB);
-
-    let f = function() {
-        if (bar.style.backgroundColor === string) {
-            bar.style.transition = "background-color 2s";
-            frame.style.transition = "background-color 2s";
-        }
-        bar.removeEventListener("transitionend", f);
-    };
-
-    bar.addEventListener("transitionend", f);
-
-    bar.style.transition = "background-color 0.15s";
-    frame.style.transition = "background-color 0.15s";
-    bar.style.backgroundColor = string;
-    frame.style.backgroundColor = string;
-}
-
 function imgonerror(event) {
     let e = event.currentTarget;
     let folder = e.parentElement.parentElement.data;
@@ -748,29 +691,39 @@ function imgonload(event) {
     let e = event.currentTarget;
     let folder = e.parentElement.parentElement.data;
     let rgb = getRGB(folder.images[folder.thumbnailIndex].dominantColorDark);
-    folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
-    folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
-    folder.gridItem.lastElementChild.style.backgroundColor = rgb;
+    folder.gridItem.style.backgroundColor = rgb;
     if (e.shadow !== undefined) {
-        e.shadow.style.opacity = 0;
-        folder.currImg = e.src;
-        e.shadow = undefined;
+        slideShowLoaded--;
+        slideShowLoadedGroup.push(e);
+        if (slideShowLoaded < 0) {
+            e.shadow = undefined;
+        } else if (slideShowLoaded === 0) {
+            for (e of slideShowLoadedGroup) {
+                e.shadow.style.opacity = 0;
+                e.style.opacity = 1;
+                e.shadow = undefined;
+            }
+            slideShowLoaded = -1;
+        }
     }
-    e.style.opacity = 1;
+    e.parentElement.style.opacity = 1;
 }
 
 function slideShow() {
-    if (selectedItem !== undefined) {
+    if (highlight.style.opacity === "1" || slideShowLoaded !== -1) {
         return;
     }
+
+    slideShowLoaded = slideShowGridItems.length;
+    slideShowLoadedGroup = [];
 
     let urlString = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/";
     for (let i = 0; i < slideShowGridItems.length; i++) {
         let folder = slideShowGridItems[i];
-        if (folder.gridItem === hoverTile) {
-            continue;
-        }
         let images = folder.images;
+        if (folder.gridItem.backgroundColor !== "rgb(32,32,32)") {
+            folder.gridItem.backgroundColor = "rgb(32,32,32)";
+        }
         let e1 = folder.gridItem.lastElementChild.firstElementChild;
         let e2;
         if (e1.style.opacity === "1") {
@@ -855,103 +808,46 @@ function sort(items) {
     return true;
 }
 
-function calcItemWidth(itemCount) {
-    let gridWidth = document.body.getBoundingClientRect().width - 15*rem - 6*rem;
-    let gridHeight = document.body.getBoundingClientRect().height - 3.5*rem - 2*rem;
-    gridItemsPerRow = Math.floor((gridWidth - (16*rem)) / (17*rem)) + 1;
-    let gridItemsFirstRow = Math.max(Math.min(gridItemsPerRow, folders.length, itemCount), 3);
-    let totalItemWidth = gridWidth - (rem * (gridItemsFirstRow-1));
-    itemWidth = (totalItemWidth/gridItemsFirstRow);
-    thumbSizes[0].width = ((gridWidth - (rem * (gridItemsPerRow-1)))/gridItemsPerRow);
-    if (itemWidth <= thumbSizes[0].width || clipPathSupported === false) {
-        itemHeight = (itemWidth/(16/9)) + 43;
-    } else {
-        itemHeight = ((itemWidth-4)/(16/9))+4;
-    }
-    let gridRowsPerPage = Math.max(Math.floor((gridHeight - (9*rem)) / itemHeight), 1);
+function calcSizes() {
+    let gridWidth = grid.offsetWidth;
+    let gridHeight = main.offsetHeight - (2 * rem) - (6 * rem);
+    let minItemWidth = 16 * rem;
+    let itemGap = 1 * rem;
+
+    gridItemsPerRow = Math.floor((gridWidth - minItemWidth) / (minItemWidth + itemGap)) + 1;
+    itemWidth = (gridWidth - ((gridItemsPerRow - 1) * itemGap)) / gridItemsPerRow;
+    let itemHeight = ((itemWidth - 6) * 0.5625) + 36 + 6;
+    let gridRowsPerPage = Math.max(Math.floor((gridHeight - itemHeight) / (itemHeight + itemGap)) + 1, 1);
     firstPageSize = gridRowsPerPage * gridItemsPerRow;
     pageSize = gridRowsPerPage * gridItemsPerRow * 3;
-    let visibleItems = gridFolders.length;
-    if (gridFolders.length === 0) {
-        visibleItems = firstPageSize;
-    }
-    let visibleRows = Math.ceil(visibleItems / gridItemsPerRow);
-    pageHeight = (itemHeight * visibleRows) + ((1 * rem) * (visibleRows - 1));
-    if (visibleItems < itemCount) {
-        pageHeight += (6 * rem);
-    }
 }
 
-function resizeSource() {
-    let width = itemWidth;
-    let nodelist = [];
-    for(folder of gridFolders) {
-        nodelist.push(folder.gridItem.lastElementChild);
-        nodelist.push(folder.gridItem.firstElementChild);
-        nodelist.push(folder.gridItem.firstElementChild.firstElementChild);
-
-    }
-    if (gridFolders.length === 0) {
-        return;
-    }
-
-    if (width > thumbSizes[0].width) {
-        curr = thumbSizes[1];
-        nodelist.forEach((node) => {
-            node.classList.remove("reduced");
-        });
-    } else {
+function setSources(folders) {
+    if (itemWidth < thumbSizes[0]) {
         curr = thumbSizes[0];
-        nodelist.forEach((node) => {
-            node.classList.add("reduced");
-        });
+    } else if (itemWidth < thumbSizes[1].width) {
+        curr = thumbSizes[1];
+    } else {
+        curr = thumbSizes[2];
     }
 
-    for (folder of gridFolders) {
-        if (folder.gridItem.style.width !== itemWidth) {
-            folder.gridItem.style.width = itemWidth + "px";
-        }
-        if (folder.gridItem.style.height !== itemHeight) {
-            folder.gridItem.style.height = itemHeight + "px";
-        }
+    for (folder of folders) {
         if (folder.images[folder.thumbnailIndex].imgurId !== undefined) {
             folder.currImg = "https://i.imgur.com/" + folder.images[folder.thumbnailIndex].imgurId + curr.name + ".jpg";
         } else {
             folder.currImg = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/" + encodeURIComponent(folder.fullName) + "/" + encodeURIComponent(folder.images[folder.thumbnailIndex].name) + [curr.size];
         }
 
-        if (folder.gridItem.lastElementChild.firstElementChild.src !== folder.currImg) {
-            let target = folder.gridItem.lastElementChild.firstElementChild;
-            if(target.src === "") {
-                target.src = folder.currImg;
-                if (target.complete) {
-                    target.style.opacity = 1;
-                }
-            } else {
-                let tempImg = new Image();
-                let f = folder;
-                tempImg.onload = function() {
-                    if (tempImg.src === f.currImg)
-                    target.src = f.currImg;
-                };
-                tempImg.src = f.currImg;
+        let target = folder.gridItem.lastElementChild.firstElementChild;
+        if (target.src == "") {
+            target.src = folder.currImg;
+            if (target.complete) {
+                target.parentElement.style.transition = "opacity 0s";
+                target.parentElement.style.opacity = 1;
             }
         }
     }
-
-    if ((Math.floor(pageHeight) > mainHeight) && loadmore.firstElementChild.style.marginLeft !== (scrollBarWidth/4) + "px") {
-        loadmore.firstElementChild.style.marginLeft = (scrollBarWidth) + "px";
-    } else if ((Math.floor(pageHeight) <= mainHeight) && loadmore.firstElementChild.style.marginLeft !== "") {
-        loadmore.firstElementChild.style.marginLeft = "";
-    }
-
-    if (gridFolders.length < 3) {
-        grid.style.gridTemplateColumns = "repeat(3, 1fr)";
-    } else {
-        grid.style.gridTemplateColumns = "";
-    }
 }
-
 function loadMore() {
     let moreFolders = [];
 
@@ -970,30 +866,26 @@ function loadMore() {
         }
 
     }
+    setSources(moreFolders);
     let frag = document.createDocumentFragment();
     for(e of moreFolders) {
         if (e.rgbset === false) {
             let rgb = getRGB(e.images[0].dominantColorDark);
-            e.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
-            e.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
-            e.gridItem.lastElementChild.style.backgroundColor = rgb;
+            e.gridItem.style.backgroundColor = rgb;
         }
         frag.appendChild(e.gridItem);
     }
-
-    if (loadedMore === false) {
-        loadedMore = true;
-        calcItemWidth(gridFolders.length);
-    }
     grid.appendChild(frag);
-    resizeSource();
+    if (slideShowLoop !== undefined) {
+        clearInterval(slideShowLoop);
+        slideShowLoaded = -1;
+    }
+    slideShowLoop = setInterval(slideShow, 7000);
 }
 
 function fillGrid(folders) {
-    loadedMore = false;
     searchFolders = folders;
     gridFolders = [];
-    calcItemWidth(folders.length);
     for (folder of folders) {
         if (gridFolders.length === firstPageSize) {
             break;
@@ -1002,11 +894,11 @@ function fillGrid(folders) {
 
         if (folder.rgbset === false) {
             let rgb = getRGB(folder.images[0].dominantColorDark);
-            folder.gridItem.firstElementChild.firstElementChild.style.backgroundColor = rgb;
-            folder.gridItem.firstElementChild.lastElementChild.style.backgroundColor = rgb;
-            folder.gridItem.lastElementChild.style.backgroundColor = rgb;
+            folder.gridItem.style.backgroundColor = rgb;
         }
     }
+
+    setSources(gridFolders);
 
     if (gridFolders.length < searchFolders.length) {
         loadmore.style.display = "flex";
@@ -1032,9 +924,14 @@ function fillGrid(folders) {
         frag.appendChild(e.gridItem);
     }
     grid.appendChild(frag);
-    resizeSource();
+    if (gridFolders.length <= 3) {
+        grid.style.gridTemplateColumns = "repeat(3, 1fr)";
+    } else {
+        grid.style.gridTemplateColumns = "";
+    }
     if (slideShowLoop !== undefined) {
         clearInterval(slideShowLoop);
+        slideShowLoaded = -1;
     }
     slideShowLoop = setInterval(slideShow, 7000);
     if (autoExplore === true) {
@@ -1226,8 +1123,8 @@ function setupHooks() {
     window.onresize = function() {
         rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
         mainHeight = document.documentElement.scrollHeight - (3.5 * rem) - (2 * rem);
-        calcItemWidth(searchFolders.length);
-        resizeSource();
+        calcSizes();
+        setSources(gridFolders);
         audioReset();
         if (highlightSongContainer.style.display === "flex") {
             if (highlightSongDownload.offsetHeight < highlightSongDownload.parentNode.offsetWidth) {
@@ -1481,9 +1378,10 @@ function storeData(data) {
     for (let folder of data) {
         let gridItem = sourceFrag.cloneNode(true);
 
-        gridItem.childNodes[1].childNodes[0].onload = imgonload;
-        gridItem.childNodes[1].childNodes[0].onerror = imgonerror;
-        gridItem.childNodes[0].childNodes[0].childNodes[0].textContent = folder.name;
+        gridItem.lastElementChild.firstElementChild.onload = imgonload;
+        gridItem.lastElementChild.firstElementChild.onerror = imgonerror;
+        gridItem.lastElementChild.firstElementChild.style.opacity = 1;
+        gridItem.firstElementChild.firstElementChild.textContent = folder.name;
         let dom = folder.images[0].dominantColor;
         let multiplier = 96/(dom.r+dom.g+dom.b);
 
@@ -1502,6 +1400,7 @@ function storeData(data) {
             gridItem.childNodes[1].appendChild(imgFrag.cloneNode(true));
             gridItem.childNodes[1].childNodes[gridItem.childNodes.length-1].onload = imgonload;
             gridItem.childNodes[1].childNodes[gridItem.childNodes.length-1].onerror = imgonerror;
+            gridItem.childNodes[1].childNodes[gridItem.childNodes.length-1].style.opacity = 0;
         }
 
         for (img of folder.images) {
@@ -1512,8 +1411,6 @@ function storeData(data) {
 
         folder.gridItem = document.createElement('div');
         folder.gridItem.onclick = selectItem;
-        folder.gridItem.onmouseover = hoverItem;
-        folder.gridItem.onmouseout = hoverOffItem;
         folder.gridItem.className = "grid-item";
         folder.gridItem.appendChild(gridItem);
         folder.gridItem.data = folder;
@@ -1592,6 +1489,7 @@ function preloader() {
     bindElements();
     handleUrlArguments();
     setupHooks();
+    calcSizes();
     loadStorage();
 }
 

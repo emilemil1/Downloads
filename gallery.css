@@ -18,6 +18,8 @@
     --default-highlight-pink: hsl(300,25%,45%);
     --bright-highlight-pink: hsl(300,30%,50%);
     --brighter-highlight-pink: hsl(300,40%,60%);
+    --brightest-highlight-pink: hsl(300,50%,70%);
+    --ultrabright-highlight-pink: hsl(300,50%,90%);
     --darkest-highlight-pink: hsl(300,25%,45%,0.5);
 
     --default-font-size: 0.875rem;
@@ -584,131 +586,62 @@ p {
     width: calc(100vw - 15rem - 6rem);
 }
 
-.sixteenbynine {
+.grid-item {
+    box-shadow: 0 0.25rem 1.5rem -0.55rem rgba(0,0,0,0.75);
     position: relative;
-    padding-top: calc((100% - 4px) * 0.5625);
-    margin: 2px;
-    background-color: rgb(32,32,32);
+    cursor: pointer;
+    background-color: var(--darkest-bg);
     transition: background-color 3s;
 }
 
-.sixteenbynine.reduced {
-    margin: 0;
-    padding-top: 56.25%;
+.sixteenbynine {
+    position: relative;
+    padding-top: calc(((100% - 6px) * 0.5625) + 4px);
+    background-color: var(--panel-bg);
+    border: 1px solid var(--darkest-bg);
+    opacity: 0;
+    transition: opacity 3s;
+}
+
+.grid-item:hover .sixteenbynine {
+    background-image: linear-gradient(var(--ultrabright-highlight-pink), var(--brightest-highlight-pink));
+}
+
+.grid-item:hover .gallery-image {
+    filter: brightness(110%);
+}
+
+.grid-item:hover .image-bar {
+    color: rgb(255,255,255);
 }
 
 .gallery-image {
     position: absolute;
     object-fit: cover;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    opacity: 0;
+    width: calc(100% - 4px);
+    height: calc(100% - 4px);
+    top: 1px;
+    left: 1px;
     flex-direction: column;
     color: rgb(32,32,32);
+    visibility: visible;
+    border: 1px solid var(--darkest-bg);
     transition: opacity 3s;
-    box-shadow: inset 0 0.1rem 0.1rem 0 rgba(0,0,0,0.16), 0 0 0 0.05rem rgba(0,0,0,0.08);
-    visibility: visible;
-}
-
-.grid-item {
-    overflow: hidden;
-    box-shadow: 0 0.25rem 1.5rem -0.55rem rgba(0,0,0,0.75);
-    position: relative;
-    cursor: pointer;
-}
-
-.image-ui-container {
-    position:absolute;
-    top:0;
-    left:0;
-    bottom:0;
-    right:0;
-    z-index: 1;
-    filter: drop-shadow(0 0 0.2rem rgba(0,0,0,0.5));
-    visibility: visible;
-}
-
-.image-ui-container.reduced {
-    position:relative;
-    z-index: 0;
-    clip-path: initial;
-    filter: initial;
-}
-
-.image-ui-container.reduced .image-frame {
-    display: none;
 }
 
 .image-bar {
-    position:absolute;
-    top:0;
-    left:0;
+    background-color: var(--darkest-bg);
     display: grid;
     grid-template-columns: auto 1fr;
     grid-template-rows: auto 1fr;
-    color: rgb(220,220,220);
-    background-color: rgb(32,32,32);
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-    padding-left: 0.75rem;
+    color: rgb(225,225,225);
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+    padding-left: 2px;
     padding-right: 2.5rem;
-    transition: background-color 2s;
-    clip-path: polygon(0 0, 100% 0, calc(100% - 2rem) 100%, 0 100%);
-}
-
-.image-bar.reduced {
-        padding-right: 0.75rem;
-        clip-path: initial;
-        position: relative;
-    }
-
-.image-frame {
-    position:absolute;
-    top:0;
-    left:0;
-    bottom:0;
-    right:0;
-    z-index: 1;
-    background-color: rgb(32,32,32);
-    transition: background-color 2s;
-    clip-path: polygon(
-        0 0, 100% 0, 100% 100%, 0 100%, 0 0,
-        2px 2px, 2px calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) 2px, 2px 2px
-    );
 }
 
 @supports(-ms-ime-align: auto) {
-    .image-frame {
-        opacity: 0;
-    }
-
-    .image-bar {
-        padding-right: 0.75rem;
-        clip-path: initial;
-        position: relative;
-        width: calc(100% - 1.5rem);
-    }
-
-    .image-bar.reduced {
-        padding-right: 0.75rem;
-        clip-path: initial;
-        position: relative;
-    }
-
-    .sixteenbynine {
-        margin:0;
-    }
-
-    .image-ui-container {
-        position:relative;
-        z-index: 0;
-        clip-path: initial;
-    }
-
     .main {
         filter: brightness(100%);
     }
@@ -738,7 +671,7 @@ p {
     justify-content: center;
     margin-top: 2rem;
     margin-bottom: 1rem;
-    width: fit-content;
+    width: calc(100vw - 15rem - 6rem);
     color: rgba(220,220,220,0.9);
     margin-left: auto;
     margin-right: auto;
