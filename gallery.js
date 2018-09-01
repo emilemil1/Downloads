@@ -684,14 +684,16 @@ function imgonerror(event) {
 }
 
 function imgonload(event) {
+    console.log("loaded");
     if (event.currentTarget.naturalHeight === 81) {
         imgonerror(event);
         return;
     }
     let e = event.currentTarget;
+    console.log(e.style.opacity);
     let folder = e.parentElement.parentElement.data;
     let rgb = getRGB(folder.images[folder.thumbnailIndex].dominantColorDark);
-    folder.gridItem.style.backgroundColor = rgb;
+    folder.gridItem.lastElementChild.style.backgroundColor = rgb;
     if (e.shadow !== undefined) {
         slideShowLoaded--;
         slideShowLoadedGroup.push(e);
@@ -705,8 +707,9 @@ function imgonload(event) {
             }
             slideShowLoaded = -1;
         }
+    } else {
+        e.style.opacity = 1;
     }
-    e.parentElement.style.opacity = 1;
 }
 
 function slideShow() {
@@ -721,9 +724,6 @@ function slideShow() {
     for (let i = 0; i < slideShowGridItems.length; i++) {
         let folder = slideShowGridItems[i];
         let images = folder.images;
-        if (folder.gridItem.backgroundColor !== "rgb(32,32,32)") {
-            folder.gridItem.backgroundColor = "rgb(32,32,32)";
-        }
         let e1 = folder.gridItem.lastElementChild.firstElementChild;
         let e2;
         if (e1.style.opacity === "1") {
@@ -815,6 +815,7 @@ function calcSizes() {
     let itemGap = 1 * rem;
 
     gridItemsPerRow = Math.floor((gridWidth - minItemWidth) / (minItemWidth + itemGap)) + 1;
+    console.log(gridItemsPerRow);
     itemWidth = (gridWidth - ((gridItemsPerRow - 1) * itemGap)) / gridItemsPerRow;
     let itemHeight = ((itemWidth - 6) * 0.5625) + 36 + 6;
     let gridRowsPerPage = Math.max(Math.floor((gridHeight - itemHeight) / (itemHeight + itemGap)) + 1, 1);
@@ -842,8 +843,8 @@ function setSources(folders) {
         if (target.src == "") {
             target.src = folder.currImg;
             if (target.complete) {
-                target.parentElement.style.transition = "opacity 0s";
-                target.parentElement.style.opacity = 1;
+                target.style.transition = "opacity 0s";
+                target.style.opacity = 1;
             }
         }
     }
@@ -871,7 +872,7 @@ function loadMore() {
     for(e of moreFolders) {
         if (e.rgbset === false) {
             let rgb = getRGB(e.images[0].dominantColorDark);
-            e.gridItem.style.backgroundColor = rgb;
+            e.gridItem.lastElementChild.style.backgroundColor = rgb;
         }
         frag.appendChild(e.gridItem);
     }
@@ -894,7 +895,7 @@ function fillGrid(folders) {
 
         if (folder.rgbset === false) {
             let rgb = getRGB(folder.images[0].dominantColorDark);
-            folder.gridItem.style.backgroundColor = rgb;
+            folder.gridItem.lastElementChild.style.backgroundColor = rgb;
         }
     }
 
@@ -1380,7 +1381,6 @@ function storeData(data) {
 
         gridItem.lastElementChild.firstElementChild.onload = imgonload;
         gridItem.lastElementChild.firstElementChild.onerror = imgonerror;
-        gridItem.lastElementChild.firstElementChild.style.opacity = 1;
         gridItem.firstElementChild.firstElementChild.textContent = folder.name;
         let dom = folder.images[0].dominantColor;
         let multiplier = 96/(dom.r+dom.g+dom.b);

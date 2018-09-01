@@ -137,6 +137,7 @@ p {
 }
 
 .side-container {
+    transform: translateX(0%);
     min-width: 200%;
     max-width: 200%;
     display: grid;
@@ -599,8 +600,6 @@ p {
     padding-top: calc(((100% - 6px) * 0.5625) + 4px);
     background-color: var(--panel-bg);
     border: 1px solid var(--darkest-bg);
-    opacity: 0;
-    transition: opacity 3s;
 }
 
 .grid-item:hover .sixteenbynine {
@@ -627,10 +626,10 @@ p {
     visibility: visible;
     border: 1px solid var(--darkest-bg);
     transition: opacity 3s;
+    opacity: 0;
 }
 
 .image-bar {
-    background-color: var(--darkest-bg);
     display: grid;
     grid-template-columns: auto 1fr;
     grid-template-rows: auto 1fr;
