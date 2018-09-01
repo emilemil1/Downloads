@@ -684,13 +684,11 @@ function imgonerror(event) {
 }
 
 function imgonload(event) {
-    console.log("loaded");
     if (event.currentTarget.naturalHeight === 81) {
         imgonerror(event);
         return;
     }
     let e = event.currentTarget;
-    console.log(e.style.opacity);
     let folder = e.parentElement.parentElement.data;
     let rgb = getRGB(folder.images[folder.thumbnailIndex].dominantColorDark);
     folder.gridItem.lastElementChild.style.backgroundColor = rgb;
@@ -815,7 +813,6 @@ function calcSizes() {
     let itemGap = 1 * rem;
 
     gridItemsPerRow = Math.floor((gridWidth - minItemWidth) / (minItemWidth + itemGap)) + 1;
-    console.log(gridItemsPerRow);
     itemWidth = (gridWidth - ((gridItemsPerRow - 1) * itemGap)) / gridItemsPerRow;
     let itemHeight = ((itemWidth - 6) * 0.5625) + 36 + 6;
     let gridRowsPerPage = Math.max(Math.floor((gridHeight - itemHeight) / (itemHeight + itemGap)) + 1, 1);
@@ -851,8 +848,8 @@ function setSources(folders) {
 }
 function loadMore() {
     let moreFolders = [];
-
     let pageMod = -gridFolders.length % gridItemsPerRow;
+    grid.style.gridTemplateColumns = "";
 
     for (let i = gridFolders.length; moreFolders.length < (pageSize + pageMod); i++) {
         if (gridFolders.length === searchFolders.length) {
@@ -926,7 +923,8 @@ function fillGrid(folders) {
     }
     grid.appendChild(frag);
     if (gridFolders.length <= 3) {
-        grid.style.gridTemplateColumns = "repeat(3, 1fr)";
+        let count = Math.min(3, firstPageSize);
+        grid.style.gridTemplateColumns = "repeat("+count+", 1fr)";
     } else {
         grid.style.gridTemplateColumns = "";
     }

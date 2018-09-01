@@ -593,6 +593,7 @@ p {
     cursor: pointer;
     background-color: var(--darkest-bg);
     transition: background-color 3s;
+    min-width: 16rem;
 }
 
 .sixteenbynine {
@@ -637,7 +638,7 @@ p {
     padding-top: 0.625rem;
     padding-bottom: 0.625rem;
     padding-left: 2px;
-    padding-right: 2.5rem;
+    padding-right: 2px;
 }
 
 @supports(-ms-ime-align: auto) {
@@ -659,7 +660,6 @@ p {
     user-select: none;
     -ms-user-select: none;
     -moz-user-select: none;
-    overflow: visible;
 }
 
 .loadmore {
