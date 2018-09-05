@@ -137,7 +137,6 @@ p {
 }
 
 .side-container {
-    transform: translateX(0%);
     min-width: 200%;
     max-width: 200%;
     display: grid;
