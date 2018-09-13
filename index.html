@@ -174,7 +174,7 @@
         </div>
     </div>
     <div class="sidebar">
-        <div class="side-container">
+        <div class="side-container" willchange>
             <script>
                 if (window.url2.includes("s=")) {
                     let i = window.url2.indexOf("s=")+2;
@@ -187,8 +187,8 @@
                     }
                     if (!isNaN(numbers) && numbers !== "") {
                         let e = document.getElementsByClassName("side-container")[0];
-                        e.style.transition = "transform 0s";
-                        e.style.transform = "translateX(-50%)";
+                        e.setAttribute("notransition", "");
+                        e.setAttribute("active", "");
                     }
                 }
             </script>

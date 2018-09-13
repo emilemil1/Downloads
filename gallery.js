@@ -157,8 +157,9 @@ function selectItem(event) {
         }, 1000, folder);
     }
 
+    main.setAttribute("willchange", "");
     highlight.removeEventListener("transitionend", resetHighlightLoad);
-    sidebar.firstElementChild.style.transform = "translateX(-50%)";
+    sidebar.firstElementChild.setAttribute("active","");
     returnTitle.textContent = folder.name;
     returnTitle.parentElement.style.backgroundColor = getRGB(RGBtoBrightness(folder.images[folder.thumbnailIndex].dominantColor, 52));
     selectedItem.lastElementChild.style.filter = "drop-shadow(0 0 0.4rem " + getRGB(RGBtoBrightness(folder.images[folder.thumbnailIndex].dominantColor, 220)) + ")";
@@ -306,7 +307,8 @@ function closeExplorerHighlight() {
     fadePause();
     let temp = selectedItem;
     highlight.addEventListener("transitionend", resetHighlightLoad);
-    main.style.filter = "";
+    main.removeAttribute("blur");
+    main.removeAttribute("darken");
     highlight.style.opacity = 0;
     highlight.style.pointerEvents = "";
     highlightImage.note = null;
@@ -455,9 +457,9 @@ function highlightDownload() {
 
 function explorerHighlight(folder, type, index) {
     if (clipPathSupported) {
-        main.style.filter = "blur(0.5rem) brightness(30%)";
+        main.setAttribute("blur", "");
     } else {
-        main.style.filter = "brightness(30%)";
+        main.setAttribute("darken", "");
     }
     highlightLoaded = false;
     if (highlightLoad.style.opacity == "") {
@@ -661,9 +663,10 @@ function RGBtoBrightness(rgb, brightness) {
 }
 
 function closeExplorer() {
-    sidebar.firstElementChild.style.transition = "";
     closeExplorerHighlight();
-    sidebar.firstElementChild.style.transform = "";
+    main.removeAttribute("willchange");
+    sidebar.firstElementChild.removeAttribute("notransition");
+    sidebar.firstElementChild.removeAttribute("active");
     returnTitle.parentElement.style.backgroundColor = "rgb(26,26,26)";
     resetSelectedItem();
     setTimeout(function() {
@@ -1300,7 +1303,7 @@ function clearPopups(newPopupSoon) {
         pop.removeAttribute("active");
     }
     if (!newPopupSoon) {
-        sidebar.firstElementChild.style.willChange = "";
+        sidebar.firstElementChild.setAttribute("willchange", "");
     }
 }
 
@@ -1453,7 +1456,7 @@ function dropdownOpen(event) {
     if (event.currentTarget.hasAttribute("active")) {
         return;
     }
-    sidebar.firstElementChild.style.willChange = "auto";
+    sidebar.firstElementChild.removeAttribute("willchange");
     clearPopups(true);
     event.currentTarget.setAttribute("active", "");
     popups.push(event.currentTarget);

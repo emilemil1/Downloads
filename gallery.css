@@ -142,10 +142,21 @@ p {
     display: grid;
     grid-template-columns: 1fr 1fr;
     transition: transform 1s;
-    will-change: transform;
     position: relative;
     flex: 1;
     visibility: visible;
+}
+
+.side-container[active] {
+    transform: translateX(-50%);
+}
+
+.side-container[willchange] {
+    will-change: transform;
+}
+
+.side-container[notransition] {
+    transition: transform 0s ease 0s;
 }
 
 .side1 {
@@ -180,6 +191,18 @@ p {
     grid-column: 1;
     transition: filter 0.9s;
     position: relative;
+}
+
+.main[blur] {
+    filter: blur(0.5rem) brightness(30%);
+}
+
+.main[darken] {
+    filter: brightness(30%)
+}
+
+.main[willchange] {
+    will-change: filter;
 }
 
 .audio-controls {
@@ -456,7 +479,8 @@ p {
 }
 
 .highlight-image-overlay-container {
-    display: fiex;
+    display: flex;
+    flex-direction: column;
     height: 25%;
     width: auto;
     min-height: 10rem;
@@ -468,19 +492,14 @@ p {
     align-self: flex-end;
     position: relative;
 }
-
-.highlight-image-overlay-falloff {
-    width: auto;
-    height: 40%;
-    background: linear-gradient(rgba(0,0,0,0),rgba(0,0,0,0.22),rgba(0,0,0,0.43),rgba(0,0,0,0.65));
-}
-
 .highlight-image-overlay {
     width: auto;
-    height: 60%;
+    height: auto;
+    flex-grow: 1;
     background: rgba(0,0,0,0.65);
     display: flex;
     flex-direction: column;
+    background: linear-gradient(rgba(0,0,0,0) 0%,rgba(0,0,0,0.65) 40%, rgba(0,0,0,0.65) 100%);
 }
 
 .highlight-image-overlay-download {
@@ -797,8 +816,8 @@ img:after {
     grid-template-columns: 1fr 3rem;
     height: 3rem;
     box-sizing: border-box;
-    margin: 2px;
-    margin-top: 1px;
+    margin-left: 2px;
+    margin-right: 2px;
     box-shadow: 0 0.1rem 0.1rem 0 rgba(0,0,0,0.32), 0 0 0 0.05rem rgba(0,0,0,0.08);
     position: relative;
     cursor: pointer;
@@ -811,7 +830,7 @@ img:after {
 }
 
 .explorer-box-item[active] {
-    border: solid 0.0625rem hsl(300,25%,45%);
+    border: solid 0.0625rem var(--panel-bg);
 }
 
 .explorer-box-item-title {
@@ -856,6 +875,7 @@ img:after {
 
 .explorer-box-content {
     display: grid;
+    grid-gap: 8px;
 }
 
 .explorer-box-images-title, .explorer-box-files-title {
