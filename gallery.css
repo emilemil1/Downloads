@@ -616,13 +616,17 @@ p {
 
 .sixteenbynine {
     position: relative;
-    padding-top: calc(((100% - 6px) * 0.5625) + 4px);
+    left: 1px;
+    width: calc(100% - 2px);
+    padding-top: calc((100% - 2px) * 0.5625);
+    box-sizing: border-box;
     background-color: var(--panel-bg);
-    border: 1px solid var(--darkest-bg);
+    border: 1px solid var(--panel-bg);
+    outline: 1px solid var(--darkest-bg);
 }
 
 .grid-item:hover .sixteenbynine {
-    background-image: linear-gradient(var(--ultrabright-highlight-pink), var(--brightest-highlight-pink));
+    border-image: linear-gradient(var(--ultrabright-highlight-pink), var(--brightest-highlight-pink)) 1;
 }
 
 .grid-item:hover .gallery-image {
@@ -636,14 +640,13 @@ p {
 .gallery-image {
     position: absolute;
     object-fit: cover;
-    width: calc(100% - 4px);
-    height: calc(100% - 4px);
-    top: 1px;
-    left: 1px;
+    border: 1px solid var(--darkest-bg);
+    width: calc(100% - 2px);
+    top: 0px;
+    left: 0px;
     flex-direction: column;
     color: rgb(32,32,32);
     visibility: visible;
-    border: 1px solid var(--darkest-bg);
     transition: opacity 3s;
     opacity: 0;
 }
