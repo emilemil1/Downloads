@@ -307,7 +307,6 @@ function closeExplorerHighlight() {
     fadePause();
     let temp = selectedItem;
     highlight.addEventListener("transitionend", resetHighlightLoad);
-    main.removeAttribute("blur");
     main.removeAttribute("darken");
     highlight.style.opacity = 0;
     highlight.style.pointerEvents = "";
@@ -456,11 +455,7 @@ function highlightDownload() {
 }
 
 function explorerHighlight(folder, type, index) {
-    if (clipPathSupported) {
-        main.setAttribute("blur", "");
-    } else {
-        main.setAttribute("darken", "");
-    }
+    main.setAttribute("darken", "");
     highlightLoaded = false;
     if (highlightLoad.style.opacity == "") {
         showHighlightLoad(true);

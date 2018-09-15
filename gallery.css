@@ -186,15 +186,11 @@ p {
     box-sizing: border-box;
     height: calc(100vh - 3.5rem);
     box-shadow: 0px 0px 0rem 2rem black;
-    filter: blur(0rem) brightness(100%);
+    filter: brightness(100%);
     grid-row: 1;
     grid-column: 1;
     transition: filter 0.9s;
     position: relative;
-}
-
-.main[blur] {
-    filter: blur(0.5rem) brightness(30%);
 }
 
 .main[darken] {
