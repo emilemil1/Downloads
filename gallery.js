@@ -442,10 +442,11 @@ function easeInOutSine (t, b, c, d) {
 
 function highlightDownload() {
     let e = document.createElement('a');
-    e.href = highlightImage.downloadUrl;
     if (highlightSongContainer.style.display === "flex") {
+        e.href = highlightSong.downloadUrl;
         e.download = selectedItem.data.files[highlightSong.index].name;
     } else if (highlightImageContainer.style.display === "grid") {
+        e.href = highlightImage.downloadUrl;
         e.download = selectedItem.data.images[highlightImage.index].name;
     }
     e.style.display = "none";
@@ -1403,6 +1404,15 @@ function storeData(data) {
             if (img.name.startsWith("§")) {
                 img.name = folder.name + img.name.substring(1);
             }
+        }
+
+        if (folder.files !== undefined) {
+            for (file of folder.files) {
+                if (file.name.startsWith("§")) {
+                    file.name = folder.name + file.name.substring(1);
+                }
+            }
+
         }
 
         folder.gridItem = document.createElement('div');
