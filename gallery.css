@@ -679,6 +679,7 @@ img:after {
 .explorer-loaded {
     grid-row: 1;
     grid-column: 1;
+    display: none;
 }
 
 .explorer-loading {

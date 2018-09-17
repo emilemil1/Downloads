@@ -178,7 +178,7 @@ function loadExplorer(folder) {
     let temp = selectedItem;
     let url = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/" + encodeURIComponent(folder.fullName) + ":/children?select=audio,file,@content.downloadUrl";
 
-    explorerLoading.style.visibility = "visible";
+    explorerLoading.style.display = "flex";
 
     fetch(url).then(response => response.json()).then(function(response) {
         if(selectedItem === undefined) {
@@ -217,7 +217,8 @@ function loadExplorer(folder) {
             return;
         }
         explorePopulate();
-        explorerLoading.style.visibility = "hidden";
+        explorerLoading.style.display = "none";
+        explorerLoaded.style.display = "block";
     });
 }
 
@@ -304,7 +305,9 @@ function resetHighlightLoad() {
 }
 
 function closeExplorerHighlight() {
-    fadePause();
+    if (highlightSong.paused === false) {
+        fadePause();
+    }
     let temp = selectedItem;
     highlight.addEventListener("transitionend", resetHighlightLoad);
     main.removeAttribute("darken");
@@ -416,6 +419,7 @@ function fadePlay() {
 }
 
 function fadePause() {
+    console.log("fade");
     if (highlightSong.volume === 0) {
         return;
     }
@@ -431,7 +435,6 @@ function fadePause() {
             clearInterval(i);
             clearInterval(highlightSong.progressMeter);
             highlightSong.pause();
-            clearInterval(highlightSong.progressMeter);
         }
     }, 10);
 }
@@ -666,7 +669,8 @@ function closeExplorer() {
     returnTitle.parentElement.style.backgroundColor = "rgb(26,26,26)";
     resetSelectedItem();
     setTimeout(function() {
-        explorerLoading.style.visibility = "visible";
+        explorerLoading.style.display = "flex";
+        explorerLoaded.style.display = "none";
         explorerBoxFiles.replaceChild(document.createElement("div"), explorerBoxFiles.firstElementChild);
         explorerBoxImages.replaceChild(document.createElement("div"), explorerBoxImages.firstElementChild);
     }, 1000);
@@ -1095,6 +1099,7 @@ function bindElements() {
     explorerBoxFiles = document.getElementsByClassName("explorer-box-files")[0];
     explorerBoxImages = document.getElementsByClassName("explorer-box-images")[0];
     explorerLoading = document.getElementsByClassName("explorer-loading")[0];
+    explorerLoaded = document.getElementsByClassName("explorer-loaded")[0];
     grid = main.firstElementChild;
     loadmore = main.lastElementChild;
     sidebar = document.getElementsByClassName("sidebar")[0];
