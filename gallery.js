@@ -4,13 +4,12 @@
 - Sharpen preview button
 - Header with link to YouTube channel, short about section
 - Appearance and polish
-- Favicon
 - Support for more hosting services
 - Mobile UI
 - Prevent slideshow on elements not in view (-500)
 - improve search by searching data
 - light/dark theme
-- minify everything
+- split init css
 */
 
 let itemData = []; //All folders.
@@ -82,7 +81,8 @@ let audioTextStopUpdate = false;
 let clipPathSupported = true;
 let volumeText;
 let autoExplore = false;
-let ItemWidth;
+let itemWidth;
+let mobile = false;
 
 let mainHeight = window.mainHeight;
 let rem = window.rem;
@@ -921,7 +921,7 @@ function fillGrid(folders) {
         frag.appendChild(e.gridItem);
     }
     grid.appendChild(frag);
-    if (gridFolders.length <= 3) {
+    if (gridFolders.length <= 3 && mobile === false) {
         let count = Math.min(3, firstPageSize);
         grid.style.gridTemplateColumns = "repeat("+count+", 1fr)";
     } else {
@@ -1491,7 +1491,18 @@ function loadStorage() {
     }
 }
 
+function checkMobile() {
+    let media = window.matchMedia("(max-width: 1135px)");
+    let func = function(media) {
+        let prev = mobile;
+        mobile = media.matches;
+    };
+    func(media);
+    media.addListener(func);
+}
+
 function preloader() {
+    checkMobile();
     bindElements();
     handleUrlArguments();
     setupHooks();

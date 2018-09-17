@@ -34,20 +34,39 @@
             background-color: #fff;
             display: grid;
             grid-template-areas:
-                "head head"
-                "side main";
-            grid-template-rows: 3.5rem 1fr;
-            grid-template-columns: 15rem 1fr;
+                "corner head ref"
+                "side main main"
+                "side main main";
+            grid-template-rows: 3.5rem 1fr 3rem;
+            grid-template-columns: 15rem 1fr 4rem;
             height: 100vh;
             max-height: 100vh;
             margin: 0;
-            background-color: rgb(12,12,12);
-            font-size: 0.875rem;
             font-family: 'Roboto', sans-serif;
+            font-size: var(--default-font-size);
+            background-color: var(--darkest-bg);
+        }
+
+        .cred {
+            grid-area: side;
+            justify-self: flex-start;
+            align-self: flex-end;
+            z-index: 2;
+            width: 15rem;
+            height: fit-content;
+        }
+
+        .footer {
+            display: none;
+        }
+
+        .corner {
+            grid-area: corner;
         }
 
         .header {
-            grid-area: head;
+            grid-column: 1/-1;
+            grid-row: 1;
             z-index: 3;
             background-color: rgb(32,32,32);
             box-shadow: 0 0.1vw 0.4vw 0 rgba(0,0,0,0.32);
@@ -56,9 +75,14 @@
             justify-content: flex-end;
             align-items: center;
             font-size: 1.5rem;
-            padding-left: 20.5rem;
-            padding-right: 3.5rem;
             color: white;
+            padding-left: 15rem;
+        }
+
+        .ref {
+            grid-area: head;
+            justify-self: flex-end;
+            z-index: 3;
         }
 
         .navigation {
@@ -68,6 +92,7 @@
             display: flex;
             font-size: 1.125rem;
             color: white;
+            height: 100%;
         }
         .navigation a {
             color: inherit;
@@ -81,23 +106,37 @@
             width: 2rem;
             display: flex;
             justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            height: 100%;
         }
 
         .navigation a[active] {
             background: rgb(12,12,12);
         }
         .sidebar {
-            z-index: 2;
+            display: flex;
             grid-area: side;
-            background-color: rgb(26,26,26);
-            box-shadow: 0.1rem 0 0.4rem 0 rgba(0,0,0,0.32);
+            z-index: 2;
+            background-color: var(--dark-bg);
+            overflow: hidden;
+            box-shadow: 0.1rem 0rem 0.4rem 0rem rgba(0,0,0,0.32);
             position: relative;
+            pointer-events: auto;
+            width: 15rem;
         }
 
         .main {
+            overflow-y: auto;
             padding: 1rem 3rem 1rem 3rem;
+            box-sizing: border-box;
+            height: calc(100vh - 3.5rem);
+            box-shadow: 0px 0px 0rem 2rem black;
+            filter: brightness(100%);
             grid-row: 1;
             grid-column: 1;
+            transition: filter 0.9s;
+            position: relative;
         }
 
         .main-wrapper {
@@ -112,12 +151,18 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
             grid-gap: 1rem;
+            width: calc(100vw - 15rem - 6rem);
         }
 
         .sixteenbynine {
-            padding-top: 56.25%;
-            height: 0;
             position: relative;
+            left: 1px;
+            width: calc(100% - 2px);
+            padding-top: calc((100% - 2px) * 0.5625);
+            box-sizing: border-box;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--panel-bg);
+            outline: 1px solid var(--darkest-bg);
         }
 
         .gallery-image {
@@ -164,11 +209,15 @@
     <meta name="theme-color" content="#ffffff" async>
 </head>
 <body>
+    <div class="corner">
+    </div>
     <div class="header">
         <div class="navigation">
             <a class="gallery-nav" href="../Downloads/" active><p>Downloads</p></a>
             <a class="info-nav" style="display: none" href="../Information/"><p>Information</p></a>
         </div>
+    </div>
+    <div class="ref">
         <div class="icons">
             <a class="youtube-link" href="https://www.youtube.com/emilemil1" title="YouTube"><i class="fab fa-youtube"></i></a>
         </div>
@@ -284,10 +333,6 @@
                 </div>
             </div>
         </div>
-        <div class="cred">
-            <div class="cred-divider"></div>
-            <span>emilemil1 | Nightcore 2018</span>
-        </div>
     </div>
     <div class="main-wrapper">
         <div class="highlight">
@@ -341,7 +386,11 @@
             </div>
         </div>
     </div>
-    <div class="preloadImgs" style="display:none">
+    <div class="footer">
+    </div>
+    <div class="cred">
+        <div class="cred-divider"></div>
+        <span>emilemil1 | Nightcore 2018</span>
     </div>
 </body>
     <script>
