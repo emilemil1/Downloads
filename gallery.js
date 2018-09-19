@@ -19,7 +19,6 @@ let slideShowGridItems = []; //Visible folders that contain multiple images.
 let slideShowLoop;
 let slideShowLoaded = -1;
 let slideShowLoadedGroup = [];
-let popups = [];
 let exploreItemContent;
 
 let sourceFrag;
@@ -45,6 +44,7 @@ let firstPageSize = 1;
 let scrollbarExists = false;
 let gridItemsPerRow = 1;
 
+let header;
 let loadmore;
 let grid; //Grid element.
 let main; //Main element.
@@ -58,6 +58,7 @@ let searchField;
 let orderOption;
 let filterSongDownload;
 let scrollPos;
+let visibleHeader;
 let returnTitle;
 let selectedItem;
 let highlight;
@@ -77,12 +78,13 @@ let audioProgress;
 let volume = 1;
 let audioTextElapsed;
 let audioTextTotal;
-let audioTextStopUpdate = false;
+let audioStopUpdate = false;
 let clipPathSupported = true;
 let volumeText;
 let autoExplore = false;
 let itemWidth;
 let mobile = false;
+let preventWillChange = false;
 
 let mainHeight = window.mainHeight;
 let rem = window.rem;
@@ -294,7 +296,6 @@ function showHighlightSong() {
         highlightSongDownload.style.fontSize = highlightSongDownload.parentNode.offsetWidth * 0.9 + "px";
     }
     audioPlay.firstElementChild.className = "fas fa-play";
-    clearInterval(highlightSong.progressMeter);
     audioReset(true);
     playHoverOff();
 }
@@ -357,8 +358,7 @@ function audioJump(time) {
 }
 
 function onProgressBarClick(event) {
-    audioTextStopUpdate = true;
-    clearInterval(highlightSong.progressMeter);
+    audioStopUpdate = true;
     let initX = event.clientX;
     let initOffset = event.offsetX;
     audioProgress.firstElementChild.style.width = initOffset + "px";
@@ -369,10 +369,7 @@ function onProgressBarClick(event) {
     window.addEventListener("mousemove", f);
     f(event);
     window.addClickQueue(function() {
-        audioTextStopUpdate = false;
-        if (!highlightSong.paused) {
-            highlightSong.progressMeter = setInterval(updateProgress, 100);
-        }
+        audioStopUpdate = false;
         window.removeEventListener("mousemove", f);
         let frac = parseInt(audioProgress.firstElementChild.style.width) / updateProgress.totalWidth;
         let time = highlightSong.duration * frac;
@@ -419,7 +416,6 @@ function fadePlay() {
 }
 
 function fadePause() {
-    console.log("fade");
     if (highlightSong.volume === 0) {
         return;
     }
@@ -433,7 +429,6 @@ function fadePause() {
         time += 0.02;
         if (time >= 1) {
             clearInterval(i);
-            clearInterval(highlightSong.progressMeter);
             highlightSong.pause();
         }
     }, 10);
@@ -810,10 +805,19 @@ function sort(items) {
 }
 
 function calcSizes() {
+
     let gridWidth = grid.offsetWidth;
     let gridHeight = main.offsetHeight - (2 * rem) - (6 * rem);
     let minItemWidth = 16 * rem;
     let itemGap = 1 * rem;
+
+    if (mobile) {
+        gridItemsPerRow = 1;
+        itemWidth = gridWidth;
+        firstPageSize = 5;
+        pageSize = 15;
+        return;
+    }
 
     gridItemsPerRow = Math.floor((gridWidth - minItemWidth) / (minItemWidth + itemGap)) + 1;
     itemWidth = (gridWidth - ((gridItemsPerRow - 1) * itemGap)) / gridItemsPerRow;
@@ -821,6 +825,13 @@ function calcSizes() {
     let gridRowsPerPage = Math.max(Math.floor((gridHeight - itemHeight) / (itemHeight + itemGap)) + 1, 1);
     firstPageSize = gridRowsPerPage * gridItemsPerRow;
     pageSize = gridRowsPerPage * gridItemsPerRow * 3;
+}
+
+function searchFieldFunc(event) {
+    if(event.keyCode==13){
+        searchField.blur();
+        event.preventDefault();
+    }
 }
 
 function setSources(folders) {
@@ -845,6 +856,9 @@ function setSources(folders) {
             if (target.complete) {
                 target.style.transition = "opacity 0s";
                 target.style.opacity = 1;
+                setTimeout(function() {
+                    target.style.transition = "";
+                },1000);
             }
         }
     }
@@ -882,6 +896,7 @@ function loadMore() {
         slideShowLoaded = -1;
     }
     slideShowLoop = setInterval(slideShow, 7000);
+    document.documentElement.scrollTop = scrollPos;
 }
 
 function fillGrid(folders) {
@@ -1120,6 +1135,7 @@ function bindElements() {
     highlightImageDownload = document.getElementsByClassName("highlight-image-overlay-download")[0];
     volumeSlider = document.getElementsByClassName("audio-controls-volume-sliderbg")[0];
     volumeText = document.getElementsByClassName("audio-controls-volume-text")[0];
+    header = document.getElementsByClassName("header")[0];
 }
 
 function setupHooks() {
@@ -1153,7 +1169,11 @@ function setupHooks() {
     volumeSlider.onclick = volumeSliderClick;
     returnTitle.parentElement.children[1].onclick = closeExplorer;
     filterSongDownload.onclick = toggle;
+    orderOption.onmouseover = dropdownHover;
+    orderOption.onmouseout = dropdownHover;
     orderOption.onclick = dropdownOpen;
+    sortOption.onmouseover = dropdownHover;
+    sortOption.onmouseout = dropdownHover;
     sortOption.onclick = dropdownOpen;
     explorer.lastElementChild.onclick = closeHighlightIfOutsideHighlight;
 
@@ -1204,11 +1224,9 @@ function setupHooks() {
         }
     };
 
-    window.addClickQueue(clearPopups.bind(this, false));
-
     highlightSong.ontimeupdate = function(event) {
-        updateProgress();
-        if (!audioTextStopUpdate) {
+        if (!audioStopUpdate) {
+            updateProgress();
             audioTextElapsed.textContent = secToTimeString(Math.round(highlightSong.currentTime));
         }
     };
@@ -1225,6 +1243,30 @@ function setupHooks() {
             clipPathSupported = false;
         }
     }
+
+    window.onscroll = mobileScroll;
+    scrollPos = 0;
+    visibleHeader = 0;
+
+    searchField.onkeydown = searchFieldFunc;
+}
+
+function mobileScroll(event) {
+    if (mobile === false) {
+        return;
+    }
+
+    let scrollTop = document.documentElement.scrollTop;
+    if (scrollTop > scrollPos && visibleHeader < 14 * rem)  {
+        visibleHeader = Math.min(visibleHeader + (scrollTop - scrollPos),14 * rem);
+        sidebar.style.transform = "translateY(" + -visibleHeader + "px)";
+        header.style.transform = "translateY(" + -visibleHeader + "px)";
+    } else if (scrollTop < scrollPos && visibleHeader > 0) {
+        visibleHeader = Math.max(visibleHeader + (scrollTop - scrollPos),0);
+        sidebar.style.transform = "translateY(" + -visibleHeader + "px)";
+        header.style.transform = "translateY(" + -visibleHeader + "px)";
+    }
+    scrollPos = scrollTop;
 }
 
 function volumeSliderClick(event) {
@@ -1297,15 +1339,6 @@ function secToTimeString(sec) {
     }
 
     return min + ":" + sec;
-}
-
-function clearPopups(newPopupSoon) {
-    for (let pop of popups) {
-        pop.removeAttribute("active");
-    }
-    if (!newPopupSoon) {
-        sidebar.firstElementChild.setAttribute("willchange", "");
-    }
 }
 
 function getRGB(obj) {
@@ -1463,14 +1496,52 @@ function dropdownSelect(event) {
 }
 
 function dropdownOpen(event) {
-    if (event.currentTarget.hasAttribute("active")) {
+    let target = event.currentTarget;
+    if (target.hasAttribute("active")) {
+        target.removeAttribute("active");
+        setTimeout(function() {
+            if (!target.hasAttribute("active")) {
+                sidebar.firstElementChild.setAttribute("willchange", "");
+                target.removeAttribute("willchange");
+            }
+        }, 500);
+        event.stopPropagation();
         return;
     }
     sidebar.firstElementChild.removeAttribute("willchange");
-    clearPopups(true);
-    event.currentTarget.setAttribute("active", "");
-    popups.push(event.currentTarget);
+    target.setAttribute("active", "");
+    target.setAttribute("hover", "");
+    preventWillChange = true;
+    window.addClickQueue(function(event) {
+        if (event.target !== target) {
+            preventWillChange = false;
+            target.removeAttribute("active");
+            setTimeout(function() {
+                if (!target.hasAttribute("active")) {
+                    if (!preventWillChange) {
+                        sidebar.firstElementChild.setAttribute("willchange", "");
+                    }
+                    target.removeAttribute("willchange");
+                }
+            }, 500);
+        }
+    }, true);
     event.stopPropagation();
+}
+
+function dropdownHover(event) {
+    if (event.target !== event.currentTarget) {
+        return;
+    }
+    if (!event.currentTarget.hasAttribute("willchange")) {
+        event.currentTarget.removeAttribute("hover");
+        event.currentTarget.setAttribute("willchange", "");
+    } else if (!event.currentTarget.hasAttribute("active")) {
+        event.currentTarget.removeAttribute("willchange");
+        if (event.currentTarget.hasAttribute("hover")) {
+            event.currentTarget.removeAttribute("hover");
+        }
+    }
 }
 
 async function galleryInit() {
