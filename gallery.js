@@ -34,6 +34,7 @@ let filterSong = false; //only display folders with a song download
 const thumbSizes = [
     {name: "m", width: 320, size: ":/thumbnails/0/c320x180_Crop/content"},
     {name: "l", width: 640, size: ":/thumbnails/0/c640x360_Crop/content"},
+    {name: "h", width: 1024, size: ":/thumbnails/0/c1024x576_Crop/content"},
     {name: "", width: 1600, size: "/content"}
 ];
 let curr;
@@ -256,15 +257,7 @@ function closeHighlightIfOutsideHighlight(event) {
     }
 }
 
-function showHighlightLoad(nohide=false, fade=false) {
-    if (fade) {
-        let func = function(){
-            highlightLoad.style.transition = "";
-            highlightLoad.removeEventListener("transitionend", func);
-        };
-        highlightLoad.addEventListener("transitionend", func);
-        highlightLoad.style.transition = "opacity 0.5s";
-    }
+function showHighlightLoad(nohide=false) {
     highlightLoad.style.opacity = "";
     playHoverOff();
     if (nohide) {
@@ -318,17 +311,11 @@ function closeExplorerHighlight() {
 }
 
 function playHoverOn() {
-    if (selectedItem === undefined) {
-        return;
-    }
     let clr = RGBtoBrightness(selectedItem.data.images[0].dominantColor, 80);
     audioPlay.style.backgroundColor = getRGB(clr);
 }
 
 function playHoverOff() {
-    if (selectedItem === undefined) {
-        return;
-    }
     let clr = RGBtoBrightness(selectedItem.data.images[0].dominantColor, 64);
     audioPlay.style.backgroundColor = getRGB(clr);
 }
@@ -835,12 +822,14 @@ function searchFieldFunc(event) {
 }
 
 function setSources(folders) {
-    if (itemWidth < thumbSizes[0]) {
+    if (itemWidth < thumbSizes[0].width) {
         curr = thumbSizes[0];
     } else if (itemWidth < thumbSizes[1].width) {
         curr = thumbSizes[1];
-    } else {
+    } else if (itemWidth < thumbSizes[2].width) {
         curr = thumbSizes[2];
+    } else {
+        curr = thumbSizes[3];
     }
 
     for (folder of folders) {
@@ -1104,6 +1093,48 @@ function setOrder(string) {
     search(searchField.value);
 }
 
+function toggleMobile() {
+    if (mobile) {
+        filterSongDownload.parentElement.onclick = toggle;
+        orderOption.parentElement.onmouseover = dropdownHover;
+        orderOption.parentElement.onmouseout = dropdownHoverOut;
+        orderOption.parentElement.onclick = dropdownOpen;
+        sortOption.parentElement.onmouseover = dropdownHover;
+        sortOption.parentElement.onmouseout = dropdownHoverOut;
+        sortOption.parentElement.onclick = dropdownOpen;
+
+        filterSongDownload.onclick = null;
+        orderOption.onmouseover = null;
+        orderOption.onmouseout = null;
+        orderOption.onclick = null;
+        sortOption.onmouseover = null;
+        sortOption.onmouseout = null;
+        sortOption.onclick = null;
+
+        window.onscroll = mobileScroll;
+    } else {
+        filterSongDownload.parentElement.onclick = null;
+        orderOption.parentElement.onmouseover = null;
+        orderOption.parentElement.onmouseout = null;
+        orderOption.parentElement.onclick = null;
+        sortOption.parentElement.onmouseover = null;
+        sortOption.parentElement.onmouseout = null;
+        sortOption.parentElement.onclick = null;
+
+        filterSongDownload.onclick = toggle;
+        orderOption.onmouseover = dropdownHover;
+        orderOption.onmouseout = dropdownHoverOut;
+        orderOption.onclick = dropdownOpen;
+        sortOption.onmouseover = dropdownHover;
+        sortOption.onmouseout = dropdownHoverOut;
+        sortOption.onclick = dropdownOpen;
+
+        window.onscroll = null;
+        sidebar.style.transform = "";
+        header.style.transform = "";
+    }
+}
+
 function bindElements() {
     main = document.getElementsByClassName("main")[0];
     searchField = document.getElementsByClassName("search-field")[0];
@@ -1168,13 +1199,6 @@ function setupHooks() {
     audioProgress.onmousedown = onProgressBarClick;
     volumeSlider.onclick = volumeSliderClick;
     returnTitle.parentElement.children[1].onclick = closeExplorer;
-    filterSongDownload.onclick = toggle;
-    orderOption.onmouseover = dropdownHover;
-    orderOption.onmouseout = dropdownHover;
-    orderOption.onclick = dropdownOpen;
-    sortOption.onmouseover = dropdownHover;
-    sortOption.onmouseout = dropdownHover;
-    sortOption.onclick = dropdownOpen;
     explorer.lastElementChild.onclick = closeHighlightIfOutsideHighlight;
 
     let els = document.getElementsByClassName("option-dropdown-item");
@@ -1244,7 +1268,6 @@ function setupHooks() {
         }
     }
 
-    window.onscroll = mobileScroll;
     scrollPos = 0;
     visibleHeader = 0;
 
@@ -1465,6 +1488,9 @@ function storeData(data) {
 
 function toggle(event) {
     let target = event.currentTarget;
+    if (mobile) {
+        target = target.lastElementChild;
+    }
     if (target.hasAttribute("checked")) {
         target.removeAttribute("checked");
     } else {
@@ -1497,6 +1523,9 @@ function dropdownSelect(event) {
 
 function dropdownOpen(event) {
     let target = event.currentTarget;
+    if (mobile) {
+        target = target.lastElementChild;
+    }
     if (target.hasAttribute("active")) {
         target.removeAttribute("active");
         setTimeout(function() {
@@ -1513,7 +1542,13 @@ function dropdownOpen(event) {
     target.setAttribute("hover", "");
     preventWillChange = true;
     window.addClickQueue(function(event) {
-        if (event.target !== target) {
+        let evTarget = event.target;
+        if (mobile && evTarget.className !== "option") {
+            evTarget = evTarget.parentElement.lastElementChild;
+        } else if (mobile) {
+            evTarget = evTarget.lastElementChild;
+        }
+        if (evTarget !== target) {
             preventWillChange = false;
             target.removeAttribute("active");
             setTimeout(function() {
@@ -1533,14 +1568,13 @@ function dropdownHover(event) {
     if (event.target !== event.currentTarget) {
         return;
     }
-    if (!event.currentTarget.hasAttribute("willchange")) {
-        event.currentTarget.removeAttribute("hover");
-        event.currentTarget.setAttribute("willchange", "");
-    } else if (!event.currentTarget.hasAttribute("active")) {
+    event.currentTarget.setAttribute("willchange", "");
+    event.currentTarget.removeAttribute("hover");
+}
+
+function dropdownHoverOut(event) {
+    if (!event.currentTarget.hasAttribute("active")) {
         event.currentTarget.removeAttribute("willchange");
-        if (event.currentTarget.hasAttribute("hover")) {
-            event.currentTarget.removeAttribute("hover");
-        }
     }
 }
 
@@ -1572,16 +1606,17 @@ function checkMobile() {
     let func = function(media) {
         let prev = mobile;
         mobile = media.matches;
+        toggleMobile();
     };
     func(media);
     media.addListener(func);
 }
 
 function preloader() {
-    checkMobile();
     bindElements();
     handleUrlArguments();
     setupHooks();
+    checkMobile();
     calcSizes();
     loadStorage();
 }

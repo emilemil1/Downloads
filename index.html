@@ -25,11 +25,45 @@
         //Get rem
         window.rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
 
-        //Get mainGeight
+        //Get mainHeight
         window.mainHeight = document.documentElement.scrollHeight - (3 * rem) - (2 * rem);
     </script>
     <script type="text/javascript" src="gallery.min.js" defer></script>
     <style>
+        :root {
+            --highlight-icon-color: rgba(240,240,240,1);
+            --default-icon-color: rgba(220,220,220,0.9);
+            --dark-icon-color: rgba(220,220,220,0.7);
+
+            --highlight-text-color: rgba(220,220,220,0.9);
+            --default-text-color: rgba(220,220,220,0.7);
+            --dark-text-color: rgba(220,220,220,0.5);
+            --darkest-text-color: rgba(220,220,220,0.4);
+            --subtle-text-color: rgba(220,220,220,0.3);
+
+            --default-ui-color: rgb(130,130,130);
+            --disabled-ui-color: rgb(110,110,110);
+            --highlight-ui-color: rgb(140,140,140);
+
+            --default-highlight-pink: hsl(300,25%,45%);
+            --bright-highlight-pink: hsl(300,30%,50%);
+            --brighter-highlight-pink: hsl(300,40%,60%);
+            --brightest-highlight-pink: hsl(300,50%,70%);
+            --ultrabright-highlight-pink: hsl(300,50%,90%);
+            --darkest-highlight-pink: hsl(300,25%,45%,0.5);
+
+            --default-font-size: 0.875rem;
+
+            --darkest-bg: rgb(12,12,12);
+            --darkish-bg: rgb(20,20,20);
+            --dark-bg: rgb(26,26,26);
+            --default-bg: rgb(32,32,32);
+            --panel-bg: rgb(42,42,42);
+            --highlight-bg: rgb(60,60,60);
+            --bright-bg: rgb(80,80,80);
+
+            --border: rgb(64,64,64);
+        }
         body {
             background-color: #fff;
             display: grid;
@@ -85,13 +119,17 @@
             z-index: 3;
         }
 
+        .youtube-link {
+            color: var(--default-icon-color);
+        }
+
         .navigation {
             align-self: center;
             margin-left: auto;
             margin-right: auto;
             display: flex;
             font-size: 1.125rem;
-            color: white;
+            color: rgba(240,240,240,1);
             height: 100%;
         }
         .navigation a {
@@ -126,6 +164,26 @@
             width: 15rem;
         }
 
+        .option-toggle-circle {
+            position: absolute;
+            height: 1.25rem;
+            width: 1.25rem;
+            right: 0.5rem;
+            top: 0.5rem;
+            z-index: 3;
+            border-radius: 1rem;
+            background-color: var(--disabled-ui-color);
+            transform: translateX(0);
+        }
+
+        .search-field {
+            outline: solid 0.0625rem var(--default-bg);
+        }
+
+        .side-container {
+            visibility: hidden;
+        }
+
         .main {
             overflow-y: auto;
             padding: 1rem 3rem 1rem 3rem;
@@ -137,6 +195,7 @@
             grid-column: 1;
             transition: filter 0.9s;
             position: relative;
+            visibility: hidden;
         }
 
         .main-wrapper {
@@ -169,10 +228,6 @@
             visibility: hidden;
         }
 
-        .side-container, .cred, .gallery-image, #loadmore {
-            visibility: hidden;
-        }
-
         .scrollbar-measure {
             overflow-y: scroll;
             width: 100px;
@@ -185,11 +240,11 @@
             display: none;
         }
     </style>
-    <link rel="stylesheet" type="text/css" href="gallery.min.css" async>
-    <link rel="stylesheet" href="./FontAwesome/css/solid.min.css" async>
-    <link rel="stylesheet" href="./FontAwesome/css/brands.min.css" async>
-    <link rel="stylesheet" href="./FontAwesome/css/fontawesome.min.css" async>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400,500" async>
+    <link rel="preload" href="gallery.min.css" as="style" onload="this.rel='stylesheet'" async>
+    <link rel="preload" href="./FontAwesome/css/fontawesome.trimmed.min.css" as="style" onload="this.rel='stylesheet'" async>
+    <link rel="preload" href="https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2" as="font" crossorigin async>
+    <link rel="preload" href="https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fChc4AMP6lbBP.woff2" as="font" crossorigin async>
+    <link rel="preload" href="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu7GxKKTU1Kvnz.woff2" as="font" crossorigin async>
     <link rel="apple-touch-icon" sizes="57x57" href="./favicon/apple-icon-57x57.png" async>
     <link rel="apple-touch-icon" sizes="60x60" href="./favicon/apple-icon-60x60.png" async>
     <link rel="apple-touch-icon" sizes="72x72" href="./favicon/apple-icon-72x72.png" async>
@@ -207,6 +262,7 @@
     <meta name="msapplication-TileColor" content="#ffffff" async>
     <meta name="msapplication-TileImage" content="./favicon/ms-icon-144x144.png" async>
     <meta name="theme-color" content="#ffffff" async>
+    <link href="https://i.imgur.com" rel="preconnect" crossorigin>
 </head>
 <body>
     <div class="corner">
