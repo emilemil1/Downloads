@@ -121,6 +121,7 @@
 
         .youtube-link {
             color: var(--default-icon-color);
+            width: 27px;
         }
 
         .navigation {
@@ -245,6 +246,9 @@
     <link rel="preload" href="https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2" as="font" crossorigin async>
     <link rel="preload" href="https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fChc4AMP6lbBP.woff2" as="font" crossorigin async>
     <link rel="preload" href="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu7GxKKTU1Kvnz.woff2" as="font" crossorigin async>
+    <link rel="preload" href="./FontAwesome/webfonts/fa-solid-900.woff2" as="font" crossorigin async>
+    <link rel="preload" href="./FontAwesome/webfonts/fa-brands-400.woff2" as="font" crossorigin async>
+
     <link rel="apple-touch-icon" sizes="57x57" href="./favicon/apple-icon-57x57.png" async>
     <link rel="apple-touch-icon" sizes="60x60" href="./favicon/apple-icon-60x60.png" async>
     <link rel="apple-touch-icon" sizes="72x72" href="./favicon/apple-icon-72x72.png" async>
@@ -447,20 +451,4 @@
         <span>emilemil1 | Nightcore 2018</span>
     </div>
 </body>
-    <script>
-        //Get scrollBarWidth
-        let scrollDiv = document.createElement('div');
-        scrollDiv.className = "scrollbar-measure";
-        document.body.appendChild(scrollDiv);
-
-        scrollBarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
-        document.body.removeChild(scrollDiv);
-        if (scrollBarWidth === 0) {
-            if ('WebkitAppearance' in document.documentElement.style) {
-                scrollBarWidth = 8;
-            } else {
-                scrollBarWidth = 17;
-            }
-        }
-    </script>
 </html>
