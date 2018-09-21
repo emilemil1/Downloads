@@ -1149,7 +1149,7 @@ img:after {
     color: var(--darkest-text-color);
 }
 
-@media (max-width: 1135px) {
+@media (max-width: 1px) {
     .side2, .side1 {
         height: 8rem;
         width: initial;
