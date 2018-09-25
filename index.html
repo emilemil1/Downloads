@@ -25,8 +25,10 @@
         //Get rem
         window.rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
 
-        //Get mainHeight
-        window.mainHeight = document.documentElement.scrollHeight - (3 * rem) - (2 * rem);
+        //Get dimensions
+        window.mainWidth = document.documentElement.scrollWidth;
+        window.mainHeight = document.documentElement.scrollHeight;
+        window.viewport = document.documentElement.clientHeight;
     </script>
     <script type="text/javascript" src="gallery.min.js" defer></script>
     <style>
@@ -246,9 +248,6 @@
     <link rel="preload" href="https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2" as="font" crossorigin async>
     <link rel="preload" href="https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fChc4AMP6lbBP.woff2" as="font" crossorigin async>
     <link rel="preload" href="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu7GxKKTU1Kvnz.woff2" as="font" crossorigin async>
-    <link rel="preload" href="./FontAwesome/webfonts/fa-solid-900.woff2" as="font" crossorigin async>
-    <link rel="preload" href="./FontAwesome/webfonts/fa-brands-400.woff2" as="font" crossorigin async>
-
     <link rel="apple-touch-icon" sizes="57x57" href="./favicon/apple-icon-57x57.png" async>
     <link rel="apple-touch-icon" sizes="60x60" href="./favicon/apple-icon-60x60.png" async>
     <link rel="apple-touch-icon" sizes="72x72" href="./favicon/apple-icon-72x72.png" async>

@@ -20,6 +20,7 @@ let slideShowLoop;
 let slideShowLoaded = -1;
 let slideShowLoadedGroup = [];
 let exploreItemContent;
+let whiteList = new Set();
 
 let sourceFrag;
 let imgFrag;
@@ -86,8 +87,16 @@ let autoExplore = false;
 let itemWidth;
 let mobile = false;
 let preventWillChange = false;
+let minVisible;
+let maxVisible;
+let minVisibleIndex;
+let maxVisibleIndex;
+let gridObserver;
 
 let mainHeight = window.mainHeight;
+let mainWidth = window.mainWidth;
+let viewport = window.viewport;
+let totalScrollHeight;
 let rem = window.rem;
 
 function isEmpty(obj) {
@@ -96,7 +105,6 @@ function isEmpty(obj) {
             return false;
         }
     }
-
     return true;
 }
 
@@ -706,6 +714,9 @@ function slideShow() {
     let urlString = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/";
     for (let i = 0; i < slideShowGridItems.length; i++) {
         let folder = slideShowGridItems[i];
+        if (mobile && !whiteList.has(folder)) {
+            continue;
+        }
         let images = folder.images;
         let e1 = folder.gridItem.lastElementChild.firstElementChild;
         let e2;
@@ -791,18 +802,44 @@ function sort(items) {
     return true;
 }
 
-function calcSizes() {
+function calcVisible() {
+    itemWidth = mainWidth - (6 * rem);
+    let itemHeight = ((itemWidth - 2)/(16/9)) + 2 + 70;
+    let margin = (itemHeight + rem) * 2;
+    let folderCount = gridFolders.length;
+    if (!searchEnabled) {
+        folderCount = 5;
+    }
+    let scroll = scrollPos;
+    if (scroll > totalScrollHeight) {
+        scroll = 0;
+    }
+    let scrollLimit = (2*rem) + (itemHeight * folderCount) + (rem * (folderCount-1));
 
-    let gridWidth = grid.offsetWidth;
-    let gridHeight = main.offsetHeight - (2 * rem) - (6 * rem);
+    minVisible = Math.max(scroll - visibleHeader - margin, 0);
+    maxVisible = Math.min(scroll + viewport - (14 * rem) + margin, scrollLimit);
+    minVisibleIndex = Math.floor((minVisible / scrollLimit) * folderCount);
+    maxVisibleIndex = Math.min(Math.floor((maxVisible / scrollLimit) * folderCount), folderCount - 1);
+}
+
+function calcSizes() {
+    let gridWidth = mainWidth - (15 * rem) - (6 * rem);
+    let gridHeight = mainHeight - (3.5 * rem) - (2 * rem) - (6 * rem);
     let minItemWidth = 16 * rem;
     let itemGap = 1 * rem;
 
     if (mobile) {
+        gridWidth = mainWidth - (6 * rem);
         gridItemsPerRow = 1;
         itemWidth = gridWidth;
         firstPageSize = 5;
         pageSize = 15;
+        let folderCount = gridFolders.length;
+        if (!searchEnabled) {
+            folderCount = 5;
+        }
+        let itemHeight = ((itemWidth - 2)/(16/9)) + 2 + 70;
+        totalScrollHeight = Math.round((folderCount * itemHeight) + ((folderCount - 1) * rem) + (30 * rem) - viewport);
         return;
     }
 
@@ -821,6 +858,46 @@ function searchFieldFunc(event) {
     }
 }
 
+function updateSources(folders) {
+    if (whiteList.start === minVisibleIndex && whiteList.end === maxVisibleIndex) {
+        return;
+    }
+
+    let sourceList = [];
+
+    for (let i = whiteList.start; i <= whiteList.end; i++) {
+        if (i < minVisibleIndex || i > maxVisibleIndex) {
+            let target = folders[i].gridItem.lastElementChild.firstElementChild;
+            whiteList.delete(folders[i]);
+            target.removeAttribute("src");
+            target.style.opacity = "";
+            folders[i].currImg = "";
+        }
+    }
+    whiteList.start = minVisibleIndex;
+    whiteList.end = maxVisibleIndex;
+
+    for (let i = minVisibleIndex; i <= maxVisibleIndex; i++) {
+        if (folders[i].currImg === "" || folders[i].currImg === undefined) {
+            whiteList.add(folders[i]);
+            sourceList.push(folders[i]);
+        }
+    }
+
+    for (folder of sourceList) {
+        let target = folder.gridItem.lastElementChild.firstElementChild;
+        if (folder.images[folder.thumbnailIndex].imgurId !== undefined) {
+            folder.currImg = "https://i.imgur.com/" + folder.images[folder.thumbnailIndex].imgurId + curr.name + ".jpg";
+        } else {
+            folder.currImg = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/" + encodeURIComponent(folder.fullName) + "/" + encodeURIComponent(folder.images[folder.thumbnailIndex].name) + [curr.size];
+        }
+
+        if (target.src == "" || target.src === undefined) {
+            target.src = folder.currImg;
+        }
+    }
+}
+
 function setSources(folders) {
     if (itemWidth < thumbSizes[0].width) {
         curr = thumbSizes[0];
@@ -832,25 +909,48 @@ function setSources(folders) {
         curr = thumbSizes[3];
     }
 
+    let index = -1;
+    let tempList = new Set();
+    for (folder of whiteList) {
+        let target = folder.gridItem.lastElementChild.firstElementChild;
+        folder.currImg = "";
+        target.removeAttribute("src");
+        target.opacity = 0;
+    }
+    whiteList.clear();
+    whiteList.start = minVisibleIndex;
+    whiteList.end = maxVisibleIndex;
+
     for (folder of folders) {
+        index++;
+        let target = folder.gridItem.lastElementChild.firstElementChild;
+        if (mobile && (index < minVisibleIndex || index > maxVisibleIndex)) {
+            folder.currImg = "";
+            target.removeAttribute("src");
+            target.opacity = 0;
+            continue;
+        } else if (mobile) {
+            whiteList.add(folder);
+        }
+
         if (folder.images[folder.thumbnailIndex].imgurId !== undefined) {
             folder.currImg = "https://i.imgur.com/" + folder.images[folder.thumbnailIndex].imgurId + curr.name + ".jpg";
         } else {
             folder.currImg = "https://api.onedrive.com/v1.0/shares/s!AqeaU-N5JvJ_gYJLVTUOUyNy1NFPHA/root:/" + encodeURIComponent(folder.fullName) + "/" + encodeURIComponent(folder.images[folder.thumbnailIndex].name) + [curr.size];
         }
 
-        let target = folder.gridItem.lastElementChild.firstElementChild;
-        if (target.src == "") {
+        if (target.src == "" || target.src === undefined) {
             target.src = folder.currImg;
-            if (target.complete) {
+            if (target.complete && (setSources.firstSet === undefined)) {
                 target.style.transition = "opacity 0s";
                 target.style.opacity = 1;
                 setTimeout(function() {
                     target.style.transition = "";
-                },1000);
+                },100);
             }
         }
     }
+    setSources.firstSet = false;
 }
 function loadMore() {
     let moreFolders = [];
@@ -870,7 +970,13 @@ function loadMore() {
         }
 
     }
-    setSources(moreFolders);
+    if (mobile) {
+        calcSizes();
+        calcVisible();
+        updateSources(gridFolders);
+    } else {
+        setSources(gridFolders);
+    }
     let frag = document.createDocumentFragment();
     for(e of moreFolders) {
         if (e.rgbset === false) {
@@ -885,7 +991,6 @@ function loadMore() {
         slideShowLoaded = -1;
     }
     slideShowLoop = setInterval(slideShow, 7000);
-    document.documentElement.scrollTop = scrollPos;
 }
 
 function fillGrid(folders) {
@@ -903,6 +1008,10 @@ function fillGrid(folders) {
         }
     }
 
+    if (mobile) {
+        calcSizes();
+        calcVisible();
+    }
     setSources(gridFolders);
 
     if (gridFolders.length < searchFolders.length) {
@@ -917,9 +1026,10 @@ function fillGrid(folders) {
             slideShowGridItems.push(folder);
         }
     };
-    if(main.childElementCount !== 0) {
+    if (main.childElementCount !== 0) {
         main.removeChild(grid);
         grid = document.createElement('div');
+        gridObserver.observe(grid, {childList: true});
         grid.className = "grid";
         main.insertBefore(grid, loadmore);
     }
@@ -928,6 +1038,7 @@ function fillGrid(folders) {
     for(e of gridFolders) {
         frag.appendChild(e.gridItem);
     }
+    mobileScroll.disabled = true;
     grid.appendChild(frag);
     if (gridFolders.length <= 3 && mobile === false) {
         let count = Math.min(3, firstPageSize);
@@ -1093,14 +1204,20 @@ function setOrder(string) {
     search(searchField.value);
 }
 
+function trackScroll() {
+    if (trackScroll.interval === undefined) {
+        trackScroll.interval = setInterval(mobileScroll, 50);
+    }
+}
+
 function toggleMobile() {
     if (mobile) {
         filterSongDownload.parentElement.onclick = toggle;
-        orderOption.parentElement.onmouseover = dropdownHover;
-        orderOption.parentElement.onmouseout = dropdownHoverOut;
+        orderOption.parentElement.onmouseover = null;
+        orderOption.parentElement.onmouseout = null;
         orderOption.parentElement.onclick = dropdownOpen;
-        sortOption.parentElement.onmouseover = dropdownHover;
-        sortOption.parentElement.onmouseout = dropdownHoverOut;
+        sortOption.parentElement.onmouseover = null;
+        sortOption.parentElement.onmouseout = null;
         sortOption.parentElement.onclick = dropdownOpen;
 
         filterSongDownload.onclick = null;
@@ -1111,7 +1228,26 @@ function toggleMobile() {
         sortOption.onmouseout = null;
         sortOption.onclick = null;
 
-        window.onscroll = mobileScroll;
+        window.addEventListener("scroll", mobileScroll, {passive: false});
+        window.removeEventListener("scroll", desktopScroll);
+        //window.ontouchmove = trackScroll;
+
+        setInterval(function() {
+            let index = -1;
+            let fail = "";
+            for (folder of gridFolders) {
+                index++;
+                if ((index < minVisibleIndex || index > maxVisibleIndex) && folder.currImg !== "") {
+                    fail += " " + index;
+                }
+            }
+            /*
+            searchField.placeholder = window.getComputedStyle(gridFolders[0].gridItem.lastElementChild.firstElementChild).opacity;
+            searchField.placeholder += " | " + minVisibleIndex + " " + maxVisibleIndex;
+            searchField.placeholder += " | " + whiteList.has(gridFolders[0]);
+            searchField.placeholder += " | " + whiteList.start + " " + whiteList.end;
+            */
+        }, 1000);
     } else {
         filterSongDownload.parentElement.onclick = null;
         orderOption.parentElement.onmouseover = null;
@@ -1129,7 +1265,10 @@ function toggleMobile() {
         sortOption.onmouseout = dropdownHoverOut;
         sortOption.onclick = dropdownOpen;
 
-        window.onscroll = null;
+        window.addEventListener("scroll", desktopScroll, {passive: true});
+        window.removeEventListener("scroll", mobileScroll);
+        window.ontouchmove = null;
+
         sidebar.style.transform = "";
         header.style.transform = "";
     }
@@ -1171,9 +1310,20 @@ function bindElements() {
 
 function setupHooks() {
     window.onresize = function() {
+        if (mobile) {
+            mainHeight = document.documentElement.scrollHeight;
+            mainWidth = document.documentElement.scrollWidth;
+            viewport = document.documentElement.clientHeight;
+            calcSizes();
+            calcVisible();
+            return;
+        }
         rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-        mainHeight = document.documentElement.scrollHeight - (3.5 * rem) - (2 * rem);
+        mainHeight = document.documentElement.scrollHeight;
+        mainWidth = document.documentElement.scrollWidth;
+        viewport = document.documentElement.clientHeight;
         calcSizes();
+        calcVisible();
         setSources(gridFolders);
         audioReset();
         if (highlightSongContainer.style.display === "flex") {
@@ -1204,15 +1354,12 @@ function setupHooks() {
     let els = document.getElementsByClassName("option-dropdown-item");
     for (let i = 0; i < els.length; i++) {
         els.item(i).onclick = dropdownSelect;
+        els.item(i).onmousedown = dropdownMousedown;
 
     }
 
     loadmore.firstElementChild.firstElementChild.onclick = function() {
-        let scrollSave = main.scrollTop;
         loadMore();
-        requestAnimationFrame(function() {
-            main.scrollTop = scrollSave;
-        });
     };
 
     searchField.oninput = function(e) {
@@ -1268,28 +1415,137 @@ function setupHooks() {
         }
     }
 
-    scrollPos = 0;
+    scrollPos = localStorage.getItem("scrollPosition");
+    if (scrollPos === null) {
+        scrollPos = 0;
+    }
+    mobileScroll.trail = parseInt(scrollPos) + 42 * rem;
+    snapHeader.showing = true;
     visibleHeader = 0;
 
     searchField.onkeydown = searchFieldFunc;
+
+    let onGridGrow = function(mutList, observer) {
+        for (let mut of mutList) {
+            if (mut.type == "childList" && mut.addedNodes.length > 0) {
+                if (scrollPos > totalScrollHeight && gridFolders.length <= firstPageSize) {
+                    scrollPos = 0;
+                    snapHeader("show");
+                    mobileScroll.trail = 42 * rem;
+                }
+                document.documentElement.scrollTop = scrollPos;
+                mobileScroll.disabled = false;
+            }
+        }
+    };
+    gridObserver = new MutationObserver(onGridGrow);
+
+    window.ontouchend = snapHeader;
+}
+
+function snapHeader(position) {
+    if (position === "show" && snapHeader.showing === false) {
+        snapHeader.showing = true;
+        visibleHeader = 0;
+    } else if (position === "hide" && snapHeader.showing === true) {
+        snapHeader.showing = false;
+        visibleHeader = 14 * rem;
+    } else if (position === "fix") {
+        snapHeader.showing = true;
+        visibleHeader = 14 * rem;
+        header.style.transition = "initial";
+        sidebar.style.transition = "initial";
+        sidebar.style.transform = "";
+        header.style.transform = "";
+        sidebar.style.position = "relative";
+        header.style.position = "relative";
+        sidebar.style.top = "0rem";
+        header.style.top = "0rem";
+        return;
+    } else {
+        return;
+    }
+
+    sidebar.style.top = "";
+    header.style.top = "";
+    sidebar.style.transform = "translateY(" + -visibleHeader + "px)";
+    header.style.transform = "translateY(" + -visibleHeader + "px)";
+    setTimeout(function() {
+        if (visibleHeader === 0) {
+            sidebar.style.transform = "";
+            sidebar.style.top = "6rem";
+            header.style.transform = "";
+            header.style.top = "0px";
+        }
+    }, 250);
 }
 
 function mobileScroll(event) {
-    if (mobile === false) {
+    if (mobile === false || mobileScroll.disabled === true) {
         return;
     }
 
     let scrollTop = document.documentElement.scrollTop;
-    if (scrollTop > scrollPos && visibleHeader < 14 * rem)  {
-        visibleHeader = Math.min(visibleHeader + (scrollTop - scrollPos),14 * rem);
+
+    if (scrollPos < scrollTop) {
+        mobileScroll.trail += (scrollPos - scrollTop) * 3;
+    }
+
+    if (scrollTop > 14 * rem && sidebar.style.position === "relative") {
+        sidebar.style.top = "";
+        sidebar.style.position = "";
+        header.style.position = "";
         sidebar.style.transform = "translateY(" + -visibleHeader + "px)";
         header.style.transform = "translateY(" + -visibleHeader + "px)";
-    } else if (scrollTop < scrollPos && visibleHeader > 0) {
-        visibleHeader = Math.max(visibleHeader + (scrollTop - scrollPos),0);
-        sidebar.style.transform = "translateY(" + -visibleHeader + "px)";
-        header.style.transform = "translateY(" + -visibleHeader + "px)";
+        setTimeout(function() {
+            header.style.transition = "";
+            sidebar.style.transition = "";
+        }, 100);
+    }
+
+    if (scrollTop === 0) {
+        mobileScroll.trail = scrollTop + 42 * rem;
+        //snapHeader("fix");
+    } else if (scrollTop <= 14 * rem && snapHeader.showing === false) {
+        //snapHeader("fix");
+    } else if (mobileScroll.trail > scrollTop + 42 * rem) {
+        mobileScroll.trail = scrollTop + 42 * rem;
+        snapHeader("show");
+    } else if (mobileScroll.trail < scrollTop - 42 * rem) {
+        mobileScroll.trail = scrollTop - 42 * rem;
+        //snapHeader("hide");
+    }
+
+    if (scrollPos === scrollTop) {
+        clearInterval(trackScroll.interval);
+        trackScroll.interval = undefined;
     }
     scrollPos = scrollTop;
+    storeScrollPos();
+
+    if (mobileScroll.folderCount === gridFolders.length) {
+        calcVisible();
+        updateSources(gridFolders);
+    } else {
+        mobileScroll.folderCount = gridFolders.length;
+    }
+}
+
+function desktopScroll(event) {
+    storeScrollPos();
+}
+
+function storeScrollPos() {
+    if (storeScrollPos.handler !== undefined) {
+        clearTimeout(storeScrollPos.handler);
+        storeScrollPos.handler = undefined;
+    }
+    storeScrollPos.handler = setTimeout(storeScrollPosHandler, 500);
+}
+
+function storeScrollPosHandler() {
+    storeScrollPos.handler = undefined;
+    localStorage.setItem("scrollPosition", Math.max(scrollPos - visibleHeader, 0));
 }
 
 function volumeSliderClick(event) {
@@ -1503,6 +1759,17 @@ function toggle(event) {
     }
 }
 
+function dropdownMousedown(event) {
+    if (mobile) {
+        let root = event.currentTarget.parentElement.parentElement.parentElement.parentElement.parentElement;
+        root.setAttribute("noactive", "");
+        window.onmouseup = function() {
+            root.removeAttribute("noactive");
+            window.onmouseup = null;
+        };
+    }
+}
+
 function dropdownSelect(event) {
     let root = event.currentTarget.parentElement.parentElement.parentElement.parentElement;
     let selection = event.currentTarget.getAttribute("value");
@@ -1570,6 +1837,7 @@ function dropdownHover(event) {
     }
     event.currentTarget.setAttribute("willchange", "");
     event.currentTarget.removeAttribute("hover");
+    event.currentTarget.parentElement.setAttribute("noactive", "");
 }
 
 function dropdownHoverOut(event) {
@@ -1579,7 +1847,7 @@ function dropdownHoverOut(event) {
 }
 
 async function galleryInit() {
-    await window.preload;
+    await Promise.all([window.preload, window.preload2]);
     storeData(window.folders);
     clearTimeout(window.spinAdd);
     document.getElementById("spinner").remove();
@@ -1612,15 +1880,15 @@ function checkMobile() {
     media.addListener(func);
 }
 
-function preloader() {
+window.preload2 = new Promise(function(resolve) {
     bindElements();
     handleUrlArguments();
     setupHooks();
     checkMobile();
     calcSizes();
     loadStorage();
-}
+    resolve("loaded");
+});
 
-preloader();
 document.addEventListener("DOMContentLoaded", galleryInit);
 
