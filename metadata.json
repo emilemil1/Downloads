@@ -4818,6 +4818,30 @@
             ]
         },
         {
+            "date": "2018-10-10T22:06:13.385Z",
+            "name": "I Gotta Know",
+            "images": [
+                {
+                    "name": "§.jpg",
+                    "dominantColor": {
+                        "r": 237,
+                        "g": 213,
+                        "b": 212
+                    },
+                    "imgurId": "3hvF6Kp"
+                }
+            ],
+            "files": [
+                {
+                    "name": "§ (Nightcore).mp3"
+                },
+                {
+                    "name": "§ (Original).mp3"
+                }
+            ],
+            "songName": "NENO - I Gotta Know (Original Edit)"
+        },
+        {
             "date": "2018-04-23T15:10:31.126Z",
             "name": "I Love Dance",
             "images": [
