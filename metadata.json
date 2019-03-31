@@ -5174,6 +5174,30 @@
             ]
         },
         {
+            "date": "2018-10-10T21:56:18.327Z",
+            "name": "Inside Out",
+            "images": [
+                {
+                    "name": "§.png",
+                    "dominantColor": {
+                        "r": 58,
+                        "g": 35,
+                        "b": 78
+                    },
+                    "imgurId": "RgrVng9"
+                }
+            ],
+            "files": [
+                {
+                    "name": "§ (Nightcore).mp3"
+                },
+                {
+                    "name": "§ (Original).mp3"
+                }
+            ],
+            "songName": "Italobrothers - Inside Out (AlejZ Bootleg Edit)"
+        },
+        {
             "date": "2018-04-24T06:37:08.066Z",
             "name": "Is This Really True",
             "images": [
