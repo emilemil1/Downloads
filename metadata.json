@@ -10404,6 +10404,33 @@
             ]
         },
         {
+            "date": "2018-10-10T22:22:44.537Z",
+            "name": "The Secret",
+            "images": [
+                {
+                    "name": "§.jpg",
+                    "dominantColor": {
+                        "r": 56,
+                        "g": 56,
+                        "b": 60
+                    },
+                    "imgurId": "gX0z5Aw"
+                }
+            ],
+            "files": [
+                {
+                    "name": "§ (Nightcore).mp3"
+                },
+                {
+                    "name": "§ (Original).mp3"
+                },
+                {
+                    "name": "§ (Video Edit).mp3"
+                }
+            ],
+            "songName": "Hard3eat - The Secret"
+        },
+        {
             "date": "2018-04-24T06:52:05.089Z",
             "name": "The Summer Has Begun",
             "images": [
