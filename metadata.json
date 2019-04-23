@@ -5246,6 +5246,17 @@
             "date": "2019-04-23T14:33:28.626Z",
             "name": "It Went",
             "suffix": "BRAMD",
+            "images": [
+                {
+                    "name": "§.png",
+                    "dominantColor": {
+                        "r": 45,
+                        "g": 78,
+                        "b": 148
+                    },
+                    "imgurId": "3ZA99Sg"
+                }
+            ],
             "files": [
                 {
                     "name": "§ (Nightcore).mp3"
