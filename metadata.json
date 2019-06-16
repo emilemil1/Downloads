@@ -559,6 +559,30 @@
                 }
             ],
             "songName": "Dj Barbas feat. Ivette - Another Way (Radio Edit)"
+        },    
+        {
+            "date": "2019-05-26T10:14:50.516Z",
+            "name": "Anthem",
+            "images": [
+                {
+                    "name": "Fubuki Shirakami (Hololive).jpg",
+                    "dominantColor": {
+                        "r": 181,
+                        "g": 199,
+                        "b": 226
+                    },
+                    "imgurId": "SSGbpze"
+                }
+            ],
+            "files": [
+                {
+                    "name": "§ (Nightcore).mp3"
+                },
+                {
+                    "name": "§ (Original).mp3"
+                }
+            ],
+            "songName": "DuGong - Anthem"
         },
         {
             "date": "2018-04-24T06:37:44.173Z",
