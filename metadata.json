@@ -8707,6 +8707,21 @@
             ]
         },
         {
+            "date": "2019-05-26T10:44:51.449Z",
+            "name": "Raise Your Glass",
+            "images": [
+                {
+                    "name": "§.jpg",
+                    "dominantColor": {
+                        "r": 178,
+                        "g": 132,
+                        "b": 166
+                    },
+                    "imgurId": "2YatVbk"
+                }
+            ]
+        },
+        {
             "date": "2018-04-24T07:11:46.042Z",
             "name": "Rather Be",
             "images": [
