@@ -8061,6 +8061,7 @@
         {
             "date": "2018-04-23T14:59:49.235Z",
             "name": "On My Way",
+            "suffix": "DJ Roxx",
             "images": [
                 {
                     "name": "§.jpg",
@@ -8072,6 +8073,31 @@
                     "imgurId": "Lnwhh54"
                 }
             ]
+        },
+        {
+            "date": "2019-07-27T11:19:17.310Z",
+            "name": "On My Way",
+            "suffix": "The Suspect",
+            "images": [
+                {
+                    "name": "Â§.jpg",
+                    "dominantColor": {
+                        "r": 19,
+                        "g": 26,
+                        "b": 48
+                    },
+                    "imgurId": "Dj9aXhH"
+                }
+            ],
+            "files": [
+                {
+                    "name": "Â§ (Nightcore).mp3"
+                },
+                {
+                    "name": "Â§ (Original).mp3"
+                }
+            ],
+            "songName": "Alan Walker - On My Way (The Suspect Bootleg)"
         },
         {
             "date": "2018-04-24T06:38:54.622Z",
