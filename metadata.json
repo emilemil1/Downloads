@@ -2024,7 +2024,7 @@
             "name": "Cyberdream",
             "images": [
                 {
-                    "name": "Â§.jpg",
+                    "name": "§.jpg",
                     "dominantColor": {
                         "r": 29,
                         "g": 38,
@@ -2368,7 +2368,7 @@
             "name": "Don't Let Me Know",
             "images": [
                 {
-                    "name": "Â§.jpg",
+                    "name": "§.jpg",
                     "dominantColor": {
                         "r": 209,
                         "g": 150,
@@ -8110,7 +8110,7 @@
             "suffix": "The Suspect",
             "images": [
                 {
-                    "name": "Â§.jpg",
+                    "name": "§.jpg",
                     "dominantColor": {
                         "r": 19,
                         "g": 26,
@@ -8121,10 +8121,10 @@
             ],
             "files": [
                 {
-                    "name": "Â§ (Nightcore).mp3"
+                    "name": "§ (Nightcore).mp3"
                 },
                 {
-                    "name": "Â§ (Original).mp3"
+                    "name": "§ (Original).mp3"
                 }
             ],
             "songName": "Alan Walker - On My Way (The Suspect Bootleg)"
@@ -9908,7 +9908,7 @@
             "name": "Stereo Love",
             "images": [
                 {
-                    "name": "Â§.jpg",
+                    "name": "§.jpg",
                     "dominantColor": {
                         "r": 49,
                         "g": 46,
@@ -9919,10 +9919,10 @@
             ],
             "files": [
                 {
-                    "name": "Â§ (Nightcore).mp3"
+                    "name": "§ (Nightcore).mp3"
                 },
                 {
-                    "name": "Â§ (Original).mp3"
+                    "name": "§ (Original).mp3"
                 }
             ],
             "songName": "Edward Maya & Vika Jigulina - Stereo Love (DJ Milk_Crown Bootleg)"
